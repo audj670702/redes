@@ -9,7 +9,7 @@
    PROYECTO:  SCaD Redes · APP
    SITIO:     https://redes.scad.mx  (GitHub Pages · repositorio redes)
    ARCHIVO:   index.html  (+ app.js, sw.js, manifest.webmanifest, icons/)
-   VERSIÓN:   v1.0.1 · 2026-10-12
+   VERSIÓN:   v1.1.0 · 2026-10-12
    DEPENDE:   scad.mx/sys-autenticacion (app=REDES, token SYS)
               /_functions/redesPwaContext · /_functions/redesTokenRefresh
    VISTAS:    1) Presentación y compra · 2) Acceso al panel ·
@@ -103,6 +103,34 @@ button{font:inherit;cursor:pointer}
 .install h2{font-size:22px;color:var(--navy);margin-bottom:8px}
 .install ol{margin:0;padding-left:20px;display:grid;gap:4px}
 .install p{margin:0;font-size:14px}
+.trial{display:inline-block;font-family:var(--f-display);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+  color:#fff;background:var(--orange);border-radius:999px;padding:3px 12px;margin-bottom:10px}
+.fine{font-size:12.5px;color:var(--muted);text-align:center;margin:2px 0 0}
+.fine a{color:var(--navy);font-weight:600}
+.hint{margin:-4px 0 0;font-size:13px;color:var(--muted)}
+.promo{margin:18px 0 6px}
+.promo video{display:block;width:100%;aspect-ratio:16/9;border-radius:var(--r);background:#E9EDF2;border:1px solid var(--line)}
+.promo figcaption{font-size:12.5px;color:var(--muted);text-align:center;margin-top:6px}
+.feats li{display:block;padding:0;border:0;background:none}
+.feat{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:start;width:100%;text-align:left;color:inherit;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.feat:active,.price:active{background:var(--soft)}
+.ver-mas,.go{font-size:12.5px;font-weight:600;color:var(--orange);white-space:nowrap;align-self:center}
+.price{display:flex;flex-direction:column;justify-content:flex-start;width:100%;text-align:left;color:inherit;text-decoration:none;font:inherit;cursor:pointer}
+.price .go{display:block;margin-top:auto;padding-top:8px;text-align:left}
+.price .p{line-height:1.05}
+.price .p small{display:block;margin-top:2px}
+.feats .ver-mas,.price .go{color:var(--orange)}
+dialog.hoja{width:min(560px,100vw);max-width:100vw;max-height:92vh;margin:auto auto 0;padding:0;border:0;border-radius:16px 16px 0 0;background:var(--panel);color:var(--ink)}
+dialog.hoja::backdrop{background:rgba(4,20,45,.55)}
+dialog.hoja[open]:not(:modal){position:fixed;inset:auto 0 0 0;z-index:10;box-shadow:0 -10px 40px rgba(0,0,0,.3)}
+.hoja-top{position:sticky;top:0;display:flex;justify-content:flex-end;padding:8px 8px 0;background:var(--panel)}
+.hoja-c{padding:0 18px 22px;display:grid;gap:12px}
+.hoja-c h2{font-size:26px;color:var(--navy)}
+.hoja-c p{margin:0}
+.hoja-c .shot{width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r);display:block}
+.pasos{margin:0;padding-left:20px;display:grid;gap:6px}
+@media (min-width:600px){dialog.hoja{margin:auto;border-radius:16px}}
 @media (max-width:380px){.prices{grid-template-columns:1fr}.hero h1{font-size:34px}}
 </style>
 </head>
@@ -114,6 +142,11 @@ button{font:inherit;cursor:pointer}
   </header>
 
   <main id="view"><div class="loading">Cargando…</div></main>
+
+  <dialog class="hoja" id="hoja" aria-label="Detalle">
+    <div class="hoja-top"><button class="btn ghost" data-act="cerrar" type="button" aria-label="Cerrar">✕ Cerrar</button></div>
+    <div class="hoja-c" id="hoja-c"></div>
+  </dialog>
 
   <div class="ver">SCaD Redes · <span id="ver"></span> · Powered by SCaD HUB</div>
 </div>

@@ -2,7 +2,11 @@
    TIPO:      HTML (APP · lógica)
    PROYECTO:  SCaD Redes · APP (redes.scad.mx)
    ARCHIVO:   app.js
-   VERSIÓN:   v1.0.1 · 2026-10-12
+   VERSIÓN:   v1.1.0 · 2026-10-12
+   CAMBIOS v1.1.0: video promocional en la presentación; PLAN REDES como
+              prueba gratuita de 14 días; compra directa (panel ?comprar=);
+              tarjetas de planes y de módulos que se pueden tocar (detalle
+              del plan colaborador y captura de cada módulo).
    CAMBIOS v1.0.1: ?install=1 (botón INSTALAR del HUB) muestra cómo instalar
               la app en el dispositivo.
    SESIÓN:    Token SYS (sys-autenticacion?app=REDES → #t=<token>).
@@ -11,12 +15,14 @@
               sigue abierta aunque la app se cierre o se minimice.
               Solo "Cerrar sesión", la baja del usuario o los 30 días la terminan.
    ========================================================== */
-const VERSION = 'v1.0.1';
+const VERSION = 'v1.1.0';
 const CFG = {
   AUTH: 'https://www.scad.mx/sys-autenticacion',
   CTX: 'https://www.scad.mx/_functions/redesPwaContext',
   REFRESH: 'https://www.scad.mx/_functions/redesTokenRefresh',
   PANEL: 'https://www.scad.mx/gestion-redes',
+  PRUEBA: 'https://www.scad.mx/gestion-redes?comprar=titular',
+  COLABORADOR: 'https://www.scad.mx/gestion-redes?comprar=colaborador',
   APP: 'REDES',
   RENOVAR_ANTES_SEG: 2 * 60 * 60
 };
@@ -125,34 +131,81 @@ function cerrarSesion() {
 }
 
 /* ---------- vistas ---------- */
+// Módulos del panel: al tocarlos se muestra su captura (datos de ejemplo)
+const MODULOS = [
+  { k: 'calendario', ic: '📅', t: 'Calendario y tablero', d: 'Ve de un vistazo qué sale hoy, esta semana y qué está atrasado.' },
+  { k: 'marcas', ic: '🏷️', t: 'Por marca y por red', d: 'Hasta 3 marcas, cada una con sus redes activas y sus ligas.' },
+  { k: 'series', ic: '🔁', t: 'Series de fechas', d: 'La misma publicación programada en varias fechas, en un solo paso.' },
+  { k: 'estados', ic: '✅', t: 'Control de estado', d: 'Idea, borrador, revisión, programado, publicado; con alertas de lo que no se registró.' },
+  { k: 'pdf', ic: '📄', t: 'Reportes en PDF', d: 'Exporta lo programado o publicado con la identidad de tu marca.' },
+  { k: 'colaboradores', ic: '👥', t: 'Colaboradores', d: 'Invita a tu equipo y define qué puede hacer cada quien y en qué marcas.' }
+];
+
 function vistaPresentacion() {
   $('#onair').hidden = true;
   return `${bloqueInstalar()}
   <section class="hero">
+    <span class="trial">14 días gratis</span>
     <h1>Tus redes, <em>al aire</em> y bajo control.</h1>
     <p>Registra, programa y da seguimiento a las publicaciones de tus marcas en Facebook, YouTube, TikTok, Instagram y más, desde un solo panel.</p>
     <div class="acts">
-      <a class="btn accent block" href="${CFG.PANEL}">Adquirir PLAN REDES</a>
+      <a class="btn accent block" href="${CFG.PRUEBA}">Comenzar prueba gratis de 14 días</a>
+      <p class="fine">Después $49 MXN / mes · Cancela cuando quieras</p>
       <button class="btn primary block" data-act="login" type="button">Iniciar sesión</button>
       <button class="btn block" data-act="instalar" type="button" ${instalar ? '' : 'hidden'}>Instalar en este dispositivo</button>
     </div>
     ${aviso ? `<p class="note">${esc(aviso)}</p>` : ''}
   </section>
+  <figure class="promo">
+    <video controls playsinline preload="none" poster="media/promo-scad-redes.jpg" aria-label="Video de presentación de SCaD Redes">
+      <source src="media/promo-scad-redes.mp4" type="video/mp4">
+    </video>
+    <figcaption>Conoce SCaD Redes en menos de un minuto.</figcaption>
+  </figure>
   <h2 class="sec">Qué incluye</h2>
+  <p class="hint">Toca un módulo para ver cómo se ve en el panel.</p>
   <ul class="feats">
-    <li><span class="ic" aria-hidden="true">📅</span><div><b>Calendario y tablero</b><span>Ve de un vistazo qué sale hoy, esta semana y qué está atrasado.</span></div></li>
-    <li><span class="ic" aria-hidden="true">🏷️</span><div><b>Por marca y por red</b><span>Hasta 3 marcas, cada una con sus redes activas y sus ligas.</span></div></li>
-    <li><span class="ic" aria-hidden="true">🔁</span><div><b>Series de fechas</b><span>La misma publicación programada en varias fechas, en un solo paso.</span></div></li>
-    <li><span class="ic" aria-hidden="true">✅</span><div><b>Control de estado</b><span>Idea, borrador, revisión, programado, publicado; con alertas de lo que no se registró.</span></div></li>
-    <li><span class="ic" aria-hidden="true">📄</span><div><b>Reportes en PDF</b><span>Exporta lo programado o publicado con la identidad de tu marca.</span></div></li>
-    <li><span class="ic" aria-hidden="true">👥</span><div><b>Colaboradores</b><span>Invita a tu equipo y define qué puede hacer cada quien y en qué marcas.</span></div></li>
+    ${MODULOS.map(m => `<li><button class="feat" data-mod="${m.k}" type="button"><span class="ic" aria-hidden="true">${m.ic}</span><div><b>${m.t}</b><span>${m.d}</span></div><span class="ver-mas" aria-hidden="true">Ver ›</span></button></li>`).join('')}
   </ul>
   <h2 class="sec">Planes</h2>
   <div class="prices">
-    <div class="price main"><div class="n">PLAN REDES</div><div class="p">$49 <small>MXN / mes</small></div><div class="d">Titular de la empresa. Incluye el panel completo y hasta 3 marcas.</div></div>
-    <div class="price"><div class="n">Colaborador</div><div class="p">$39 <small>MXN / mes</small></div><div class="d">Por cada colaborador que invites, con su propia cuenta.</div></div>
+    <a class="price main" href="${CFG.PRUEBA}"><div class="n">PLAN REDES</div><div class="p">14 días <small>gratis</small></div><div class="d">Después $49 MXN / mes. Titular de la empresa: panel completo y hasta 3 marcas.</div><span class="go">Comenzar prueba ›</span></a>
+    <button class="price" data-act="colaborador" type="button"><div class="n">Colaborador</div><div class="p">$39 <small>MXN / mes</small></div><div class="d">Para quien fue invitado por el titular de una empresa. Con su propia cuenta.</div><span class="go">Cómo funciona ›</span></button>
   </div>
-  <a class="btn accent block" href="${CFG.PANEL}">Empezar ahora</a>`;
+  <a class="btn accent block" href="${CFG.PRUEBA}">Comenzar prueba gratis de 14 días</a>
+  <p class="fine">Cancela cuando quieras desde tu cuenta.</p>`;
+}
+
+/* ---------- ventanas (módulo y plan colaborador) ---------- */
+function abrirVentana(html) {
+  const d = $('#hoja');
+  $('#hoja-c').innerHTML = html;
+  if (typeof d.showModal === 'function') { if (!d.open) d.showModal(); } else d.setAttribute('open', '');
+  d.scrollTop = 0;
+}
+function cerrarVentana() {
+  const d = $('#hoja');
+  if (typeof d.close === 'function' && d.open) d.close(); else d.removeAttribute('open');
+}
+function ventanaModulo(k) {
+  const m = MODULOS.find(x => x.k === k);
+  if (!m) return;
+  abrirVentana(`<h2>${m.ic} ${m.t}</h2><p class="muted">${m.d}</p>
+    <img class="shot" src="media/app/${m.k}.webp" alt="Panel de SCaD Redes: ${m.t}" width="800" height="1640">
+    <p class="fine">Datos de ejemplo.</p>
+    <a class="btn accent block" href="${CFG.PRUEBA}">Comenzar prueba gratis de 14 días</a>`);
+}
+function ventanaColaborador() {
+  abrirVentana(`<h2>Plan Colaborador</h2>
+    <p><b>$39 MXN / mes</b> por persona. No incluye prueba gratuita.</p>
+    <ol class="pasos">
+      <li>El titular de la empresa te invita con tu correo desde su panel, en la pestaña <b>Usuarios</b>.</li>
+      <li>Con la invitación hecha, activa aquí tu acceso con la cuenta de ese mismo correo.</li>
+      <li>Entras al panel de la empresa con los permisos y marcas que el titular te asignó.</li>
+    </ol>
+    <p class="note">Si aún no te invitan, no lo compres: pide primero la invitación al titular.</p>
+    <a class="btn accent block" href="${CFG.COLABORADOR}">Ya me invitaron: activar mi acceso</a>
+    <p class="fine">¿Quieres registrar tu propia empresa? Usa la <a href="${CFG.PRUEBA}">prueba gratis de 14 días</a> del PLAN REDES.</p>`);
 }
 
 function iniciales(nombre) {
@@ -198,10 +251,11 @@ function vistaEO(c) {
         : 'La suscripción de esta empresa no está activa. Pide al titular que la renueve.'],
       comprar_colaborador: ['Activa tu acceso', 'Te invitaron como colaborador. Para entrar necesitas tu suscripción COLABORADOR REDES ($39 MXN / mes).']
     }[c.estado] || ['Acceso no disponible', 'Entra al panel para revisar el estado de tu cuenta.'];
-    const boton = c.estado === 'comprar_colaborador' ? 'Adquirir COLABORADOR REDES'
-      : (c.estado === 'suspendida' && u.rol === 'TITULAR' ? 'Renovar PLAN REDES' : 'Ir al panel');
+    const renovar = c.estado === 'suspendida' && u.rol === 'TITULAR';
+    const boton = c.estado === 'comprar_colaborador' ? 'Activar COLABORADOR REDES' : (renovar ? 'Renovar PLAN REDES' : 'Ir al panel');
+    const destino = c.estado === 'comprar_colaborador' ? CFG.COLABORADOR : (renovar ? CFG.PRUEBA : (safeUrl(c.urlPanel) || CFG.PANEL));
     h += `<section class="state card"><h2>${t[0]}</h2><p class="muted" style="margin:0 0 14px">${t[1]}</p>
-      <a class="btn accent block" href="${esc(safeUrl(c.urlPanel) || CFG.PANEL)}">${boton}</a></section>`;
+      <a class="btn accent block" href="${esc(destino)}">${boton}</a></section>`;
   }
 
   h += `<div class="foot">
@@ -237,9 +291,14 @@ async function iniciar() {
 }
 
 document.addEventListener('click', e => {
+  const mod = e.target.closest('[data-mod]');
+  if (mod) { ventanaModulo(mod.dataset.mod); return; }
+  if (e.target.id === 'hoja') { cerrarVentana(); return; }   // toque fuera del contenido
   const b = e.target.closest('[data-act]');
   if (!b) return;
   const act = b.dataset.act;
+  if (act === 'colaborador') { ventanaColaborador(); return; }
+  if (act === 'cerrar') { cerrarVentana(); return; }
   if (act === 'login' || act === 'cambiar') { b.disabled = true; iniciarSesion(); }
   else if (act === 'logout') { b.disabled = true; cerrarSesion(); }
   else if (act === 'instalar' && instalar) {

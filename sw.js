@@ -1,7 +1,7 @@
-/* SCaD Redes · APP · service worker v1.0.1
+/* SCaD Redes · APP · service worker v1.1.0
    Guarda la interfaz para abrir sin conexión. Las llamadas a scad.mx
    (sesión y contexto) nunca se guardan en caché. */
-const CACHE = 'redes-app-v1.0.1';
+const CACHE = 'redes-app-v1.1.0';
 const SHELL = ['./', 'index.html', 'app.js', 'manifest.webmanifest',
   'icons/logo.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
@@ -18,6 +18,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
+  // El video se pide por partes (Range) directamente a la red; no se guarda en caché
+  if (url.pathname.endsWith('.mp4') || e.request.headers.has('range')) return;
   // Red primero (versión más reciente); si no hay conexión, la copia guardada
   e.respondWith(
     fetch(e.request)
