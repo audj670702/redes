@@ -17,14 +17,16 @@ APP de la familia SCaD, integrada al **modelo multiempresa gestionado desde Pane
 | Tipo | Archivo | Destino |
 |---|---|---|
 | HTML (APP) v1.1.0 | `index.html`, `app.js`, `sw.js`, `manifest.webmanifest`, `icons/`, `media/promo-scad-redes.*`, `media/app/` | GitHub Pages · redes.scad.mx |
-| BACKEND | `BACKEND/RED_BACKEND_redesCore.js` v1 | `backend/redesCore.js` |
+| BACKEND | `BACKEND/RED_BACKEND_redesCore.js` v1.1 | `backend/redesCore.js` |
 | BACKEND | `BACKEND/RED_BACKEND_redes.web.js` v2.4 | `backend/redes.web.js` |
-| VELO | `VELO/RED_VELO_gestion-redes_v6.js` | página `/gestion-redes` (Solo miembros) |
+| VELO | `VELO/RED_VELO_gestion-redes_v7.js` | página `/gestion-redes` (Solo miembros) |
 | HTML | `HTML/RED_HTML_htmlPanel_v20.html` | componente `#htmlPanel` |
 | BACKEND · SYS | `SYS/BACKEND/SYS_BACKEND_nexusAuth_v0.1.4.js` | `backend/nexusAuth.js` |
 | BACKEND · SYS | `SYS/BACKEND/SYS_BACKEND_sysToken.web_v0.1.2.js` | `backend/sysToken.web.js` |
 | BACKEND · SYS | `SYS/BACKEND/SYS_BACKEND_http-functions_bloque-REDES_v1.js` | se integra en `backend/http-functions.js` |
 | VELO · SYS | `SYS/VELO/SYS_VELO_sys-autenticacion_v0.1.11.js` | página `sys-autenticacion` |
+| HTML · SYS | `SYS/HTML/SYS_HTML_PanelSYS_menu_v1.4.8.html` | menú de accesos de Panel SYS (botón REDES) |
+| VELO · SYS | `SYS/VELO/SYS_VELO_PanelSYS_v0.6.8.js` | página Panel SYS (entrar como admSYS a REDES) |
 | HTML · HUB | `SYS/HTML/SYS_HTML_HUB_home_v1.7.8.html` | componente `#html1` del HOME de SCaD HUB (tarjeta SCaD Redes) |
 | BACKEND · temporal | `BACKEND/migraciones/RED_BACKEND_redes-migracion.web.js` v1 | se elimina tras migrar |
 

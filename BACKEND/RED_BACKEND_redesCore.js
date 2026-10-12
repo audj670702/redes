@@ -6,7 +6,9 @@
               En Wix se instala como:  backend/redesCore.js
               (.js a propósito: solo lo usan otros archivos del backend,
                nunca el navegador)
-   VERSIÓN:   v1 · 2026-10-12
+   VERSIÓN:   v1.1 · 2026-10-12
+   CAMBIOS v1.1: la EO pedida también se reconoce por codigoEO (EO007), que es
+              lo que envía Panel SYS al entrar como admSYS (?scadEO=).
    USADO POR: backend/redes.web.js (Panel) y http-functions.js (APP)
    MODELO:    Multiempresa gestionado desde Panel SYS + modelo comercial
    DEPENDE:   SCaD_EO, SCaD_USR (transversales)
@@ -508,7 +510,7 @@ async function resolver(ident, req, opciones) {
 
   // 4) EO activa
   const pedida = texto(r.eo);
-  let sel = pedida ? lista.find(x => x.eo._id === pedida || x.eo.codigoContexto === pedida) : null;
+  let sel = pedida ? lista.find(x => x.eo._id === pedida || x.eo.codigoContexto === pedida || texto(x.eo.codigoEO) === pedida) : null;
   let aviso = '';
   if (pedida && !sel) aviso = 'No tienes acceso a la empresa solicitada.';
   if (!sel && lista.length === 1) sel = lista[0];

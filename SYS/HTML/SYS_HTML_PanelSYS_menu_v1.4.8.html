@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>SCaD · Panel SYS</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --navy: #174b78;
+      --navy-hover: #1c5a8f;
+      --icon: #e6f0ff;
+      --text: #e6f0ff;
+      --muted: #8da0bf;
+      --focus: rgba(23, 104, 242, .28);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: #17223f;
+    }
+
+    body {
+      padding:
+        max(8px, env(safe-area-inset-top))
+        8px
+        max(10px, env(safe-area-inset-bottom));
+    }
+
+    .shell {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+    }
+
+    .header {
+      margin: 0 0 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(18px, 2.2vw, 23px);
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -.035em;
+    }
+
+    .version {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 650;
+      letter-spacing: .02em;
+    }
+
+    /* =========================================================
+       BOTONES DE ACCESO
+       ========================================================= */
+
+    .systems {
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      gap: 0;
+      width: 100%;
+      padding: 5px;
+      background: var(--navy);
+      border-radius: var(--radius);
+    }
+
+    .system {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 60px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      gap: 3px;
+      padding: 5px 6px;
+
+      border: 0;
+      border-radius: 6px;
+
+      background: transparent;
+      color: var(--text);
+
+      text-decoration: none;
+      text-align: center;
+
+      cursor: pointer;
+
+      transition:
+        background .15s ease,
+        transform .15s ease;
+    }
+
+    .system:hover {
+      background: rgba(255, 255, 255, .09);
+      transform: translateY(-1px);
+    }
+
+    .system:active {
+      transform: translateY(0);
+    }
+
+    .system:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* =========================================================
+       ICONOS
+       ========================================================= */
+
+    .system-icon {
+      width: 27px;
+      height: 27px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: var(--icon);
+      flex: 0 0 auto;
+    }
+
+    .system-icon svg {
+      width: 25px;
+      height: 25px;
+
+      display: block;
+
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* =========================================================
+       NOMBRE
+       ========================================================= */
+
+    .system-name {
+      width: 100%;
+
+      color: var(--text);
+      font-size: 9.5px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: 0;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Permite dos líneas únicamente cuando el nombre lo requiere */
+    .system-name.wrap {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    /* =========================================================
+       MÓVIL
+       ========================================================= */
+
+    @media (max-width: 520px) {
+
+      body {
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .systems {
+        gap: 0;
+        padding: 4px;
+      }
+
+      .system {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 58px;
+        padding: 4px 2px;
+      }
+
+      .system-icon {
+        width: 25px;
+        height: 25px;
+      }
+
+      .system-icon svg {
+        width: 23px;
+        height: 23px;
+      }
+
+      .system-name {
+        font-size: 9px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================================================
+       BIBLIOTECA DE ICONOS
+       ========================================================= -->
+
+  <svg
+    aria-hidden="true"
+    width="0"
+    height="0"
+    style="position:absolute;overflow:hidden"
+  >
+    <defs>
+
+      <!-- GYM -->
+      <symbol id="icon-gym" viewBox="0 0 24 24">
+        <path d="M6 9v6"></path>
+        <path d="M3 10v4"></path>
+        <path d="M18 9v6"></path>
+        <path d="M21 10v4"></path>
+        <path d="M6 12h12"></path>
+      </symbol>
+
+      <!-- ODIN -->
+      <symbol id="icon-odin" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"></circle>
+        <path d="M12 7v5l3 2"></path>
+        <path d="M12 2v2"></path>
+        <path d="M12 20v2"></path>
+      </symbol>
+
+      <!-- PORTAL OPERATIVO -->
+      <symbol id="icon-operation" viewBox="0 0 24 24">
+        <path d="M12 3v4"></path>
+        <path d="M12 17v4"></path>
+        <path d="M3 12h4"></path>
+        <path d="M17 12h4"></path>
+        <circle cx="12" cy="12" r="5"></circle>
+        <circle cx="12" cy="12" r="1.5"></circle>
+      </symbol>
+
+      <!-- ORGANIZACIÓN -->
+      <symbol id="icon-org" viewBox="0 0 24 24">
+        <circle cx="12" cy="5" r="2"></circle>
+        <circle cx="6" cy="18" r="2"></circle>
+        <circle cx="18" cy="18" r="2"></circle>
+        <path d="M12 7v4"></path>
+        <path d="M6 16v-3h12v3"></path>
+        <path d="M12 11v2"></path>
+      </symbol>
+
+      <!-- ARCADE -->
+      <symbol id="icon-game" viewBox="0 0 24 24">
+        <path d="M7 7h10a4 4 0 0 1 3.8 5.2l-1.5 5A2.5 2.5 0 0 1 15 18l-2-2h-2l-2 2a2.5 2.5 0 0 1-4.3-.8l-1.5-5A4 4 0 0 1 7 7z"></path>
+        <path d="M8 11v4"></path>
+        <path d="M6 13h4"></path>
+        <circle cx="16" cy="12" r=".8"></circle>
+        <circle cx="18" cy="14" r=".8"></circle>
+      </symbol>
+
+      <!-- COMUNIDAD -->
+      <symbol id="icon-community" viewBox="0 0 24 24">
+        <circle cx="9" cy="8" r="3"></circle>
+        <path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19"></path>
+        <path d="M16 6.5a3 3 0 0 1 0 5"></path>
+        <path d="M17 14a4 4 0 0 1 3.5 4v1"></path>
+      </symbol>
+
+      <!-- CPC -->
+      <symbol id="icon-shield" viewBox="0 0 24 24">
+        <path d="M12 3l7 4v5c0 4.5-2.8 7.5-7 9-4.2-1.5-7-4.5-7-9V7l7-4z"></path>
+        <path d="M9 12l2 2 4-4"></path>
+      </symbol>
+
+      <!-- TV -->
+      <symbol id="icon-tv" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+        <path d="M9 22h6"></path>
+        <path d="M10 2l2 3 2-3"></path>
+        <path d="M10 9l5 3-5 3z"></path>
+      </symbol>
+
+      <!-- MNS -->
+      <symbol id="icon-chat" viewBox="0 0 24 24">
+        <path d="M4 5h16v11H9l-5 4V5z"></path>
+        <path d="M8 9h8"></path>
+        <path d="M8 12h5"></path>
+      </symbol>
+
+      <!-- NEXUS -->
+      <symbol id="icon-nexus" viewBox="0 0 24 24">
+        <circle cx="6" cy="12" r="2"></circle>
+        <circle cx="18" cy="6" r="2"></circle>
+        <circle cx="18" cy="18" r="2"></circle>
+        <path d="M8 12h4"></path>
+        <path d="M12 12l4.5-4.5"></path>
+        <path d="M12 12l4.5 4.5"></path>
+      </symbol>
+
+      <!-- REDES -->
+      <symbol id="icon-redes" viewBox="0 0 24 24">
+        <path d="M3 10.5v3a1 1 0 0 0 1 1h2.5L12 18V6L6.5 9.5H4a1 1 0 0 0-1 1z"></path>
+        <path d="M15.5 9a3.5 3.5 0 0 1 0 6"></path>
+        <path d="M18.5 6.5a7 7 0 0 1 0 11"></path>
+      </symbol>
+
+      <!-- RESIDENCIAL -->
+      <symbol id="icon-home" viewBox="0 0 24 24">
+        <path d="M3 11l9-8 9 8"></path>
+        <path d="M5 10v11h14V10"></path>
+        <path d="M9 21v-6h6v6"></path>
+      </symbol>
+
+    </defs>
+  </svg>
+
+  <!-- =========================================================
+       PANEL
+       ========================================================= -->
+
+  <main class="shell">
+
+    <header class="header">
+      <h1>Panel SYS</h1>
+      <span class="version">SYS · Panel v1.4.8</span>
+    </header>
+
+    <section
+      class="systems"
+      aria-label="Paneles administrativos SCaD HUB"
+    >
+
+      <!-- GYM -->
+      <a
+        class="system"
+        href="https://www.scad.mx/panel-de-entrenador"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel GYM"
+        title="Abrir Panel GYM"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-gym"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">GYM</span>
+      </a>
+
+      <!-- ODIN -->
+      <a
+        class="system"
+        href="https://www.scad.mx/panel-odin"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel ODIN"
+        title="Abrir Panel ODIN"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-odin"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">ODIN</span>
+      </a>
+
+      <!-- PORTAL OPERATIVO -->
+      <a
+        class="system"
+        href="https://www.scad.mx/portaloperativo"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel Portal Operativo"
+        title="Abrir Panel Portal Operativo"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-operation"></use>
+          </svg>
+        </span>
+
+        <span class="system-name wrap">PORTAL OPERATIVO</span>
+      </a>
+
+      <!-- MORENA -->
+      <a
+        class="system"
+        href="https://www.scad.mx/mor-panel-adm"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel Morena"
+        title="Abrir Panel Morena"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-org"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">MORENA</span>
+      </a>
+
+      <!-- ARCADE -->
+      <a
+        class="system"
+        href="https://www.scad.mx/arc-panel"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel Arcade"
+        title="Abrir Panel Arcade"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-game"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">ARCADE</span>
+      </a>
+
+      <!-- COMUNIDAD -->
+      <a
+        class="system"
+        href="https://www.scad.mx/com-panel"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel Comunidad"
+        title="Abrir Panel Comunidad"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-community"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">COMUNIDAD</span>
+      </a>
+
+      <!-- CPC -->
+      <a
+        class="system"
+        href="https://www.scad.mx/cpc-panel"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel CPC"
+        title="Abrir Panel CPC"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-shield"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">CPC</span>
+      </a>
+
+      <!-- TV DIGITAL -->
+      <a
+        class="system"
+        href="https://www.scad.mx/qtv-panel-control"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel TV Digital"
+        title="Abrir Panel TV Digital"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-tv"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">TV DIGITAL</span>
+      </a>
+
+      <!-- MNS -->
+      <a
+        class="system"
+        href="https://www.scad.mx/mns-adm"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel MNS"
+        title="Abrir Panel MNS"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-chat"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">MNS</span>
+      </a>
+
+      <!-- NEXUS -->
+      <a
+        class="system"
+        href="https://www.scad.mx/nexus-panel"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel NEXUS"
+        title="Abrir Panel NEXUS"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-nexus"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">NEXUS</span>
+      </a>
+
+      <!-- RESIDENCIAL -->
+      <a
+        class="system"
+        href="https://residencial.scad.mx"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel Residencial"
+        title="Abrir Panel Residencial"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-home"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">RESIDENCIAL</span>
+      </a>
+
+      <!-- REDES -->
+      <a
+        class="system"
+        href="https://www.scad.mx/gestion-redes"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Abrir Panel SCaD Redes"
+        title="Abrir Panel SCaD Redes"
+      >
+        <span class="system-icon">
+          <svg aria-hidden="true">
+            <use href="#icon-redes"></use>
+          </svg>
+        </span>
+
+        <span class="system-name">REDES</span>
+      </a>
+
+    </section>
+
+  </main>
+
+</body>
+</html>
