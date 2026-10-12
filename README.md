@@ -9,7 +9,7 @@ APP de la familia SCaD, integrada al **modelo multiempresa gestionado desde Pane
 |---|---|
 | Prototipo funcional en Wix (scad.mx `/gestion-redes`, `#htmlPanel`) | Completo |
 | Integración multiempresa (APP + EO) y modelo comercial (planes, colaboradores, sesión única) | v2.3 publicada y verificada en el sitio (12 oct 2026) |
-| APP redes.scad.mx + registro de EO en Panel SYS + admSYS | v3 desarrollada · pendiente de instalar |
+| APP redes.scad.mx + registro de EO en Panel SYS + admSYS | v3 instalada y funcionando (12 oct 2026) · pendiente prueba comercial con cuenta nueva |
 
 ## Versión vigente
 
