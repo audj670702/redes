@@ -9,17 +9,24 @@ APP de la familia SCaD, integrada al **modelo multiempresa gestionado desde Pane
 |---|---|
 | Prototipo funcional en Wix (scad.mx `/gestion-redes`, `#htmlPanel`) | Completo |
 | Integración multiempresa (APP + EO) y modelo comercial (planes, colaboradores, sesión única) | v2.3 publicada y verificada en el sitio (12 oct 2026) |
+| APP redes.scad.mx + registro de EO en Panel SYS + admSYS | v3 desarrollada · pendiente de instalar |
 
 ## Versión vigente
 
-| Tipo | Archivo | Se instala en Wix como |
+| Tipo | Archivo | Destino |
 |---|---|---|
-| BACKEND | `BACKEND/RED_BACKEND_redes.web.js` v2.3 | `backend/redes.web.js` |
-| BACKEND · temporal | `BACKEND/migraciones/RED_BACKEND_redes-migracion.web.js` v1 | `backend/redes-migracion.web.js` (se elimina tras migrar) |
-| VELO | `VELO/RED_VELO_gestion-redes_v5.js` | código de la página `/gestion-redes` (Solo miembros) |
-| HTML | `HTML/RED_HTML_htmlPanel_v18.html` | componente `#htmlPanel` |
+| HTML (APP) | `index.html`, `app.js`, `sw.js`, `manifest.webmanifest`, `icons/` | GitHub Pages · redes.scad.mx |
+| BACKEND | `BACKEND/RED_BACKEND_redesCore.js` v1 | `backend/redesCore.js` |
+| BACKEND | `BACKEND/RED_BACKEND_redes.web.js` v2.4 | `backend/redes.web.js` |
+| VELO | `VELO/RED_VELO_gestion-redes_v5.js` | página `/gestion-redes` (Solo miembros) |
+| HTML | `HTML/RED_HTML_htmlPanel_v19.html` | componente `#htmlPanel` |
+| BACKEND · SYS | `SYS/BACKEND/SYS_BACKEND_nexusAuth_v0.1.4.js` | `backend/nexusAuth.js` |
+| BACKEND · SYS | `SYS/BACKEND/SYS_BACKEND_sysToken.web_v0.1.2.js` | `backend/sysToken.web.js` |
+| BACKEND · SYS | `SYS/BACKEND/SYS_BACKEND_http-functions_bloque-REDES_v1.js` | se integra en `backend/http-functions.js` |
+| VELO · SYS | `SYS/VELO/SYS_VELO_sys-autenticacion_v0.1.11.js` | página `sys-autenticacion` |
+| BACKEND · temporal | `BACKEND/migraciones/RED_BACKEND_redes-migracion.web.js` v1 | se elimina tras migrar |
 
-Instalación y verificación: [`docs/Instalacion_v2_Comercial.md`](docs/Instalacion_v2_Comercial.md).
+Instalación vigente: [`docs/Instalacion_v3_APP.md`](docs/Instalacion_v3_APP.md) · anterior: [`docs/Instalacion_v2_Comercial.md`](docs/Instalacion_v2_Comercial.md).
 
 ## Modelo comercial
 
@@ -43,6 +50,8 @@ Los códigos se identifican por tipo:
 | `VELO/` | VELO | Código de la página `/gestion-redes` |
 | `BACKEND/` | BACKEND | Métodos web (`redes.web.js`) con validación de contexto |
 | `BACKEND/migraciones/` | BACKEND | Scripts de uso único; no forman parte de la instalación permanente |
+| `SYS/` | BACKEND · VELO | Archivos compartidos de SYS en scad.mx que REDES modifica (token, autenticación, http-functions) |
+| raíz | HTML | APP PWA publicada en redes.scad.mx |
 | `docs/` | — | Documentación técnica |
 
 ## Modelo multiempresa (resumen)

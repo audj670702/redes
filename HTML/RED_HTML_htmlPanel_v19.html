@@ -9,10 +9,14 @@
    PROYECTO:  Panel de Publicaciones en Redes
    SITIO:     scad.mx · Página: /gestion-redes
    ELEMENTO:  #seccPanel › #htmlPanel
-   ARCHIVO:   RED_HTML_htmlPanel_v18.html
-   VERSIÓN:   v18 · 2026-10-11
-   DEPENDE:   RED_VELO_gestion-redes_v5.js · backend/redes.web.js v2
+   ARCHIVO:   RED_HTML_htmlPanel_v19.html
+   VERSIÓN:   v19 · 2026-10-12
+   DEPENDE:   RED_VELO_gestion-redes_v5.js · backend/redes.web.js v2.4
               jsPDF 2.5.1 + AutoTable 3.8.2 (cdnjs, se cargan al exportar)
+   CAMBIOS v19: registro de empresa con la ficha mínima de SYS (nombre,
+              apellidos, nombre de presentación y teléfono); acceso de
+              asistencia SYS (solo lectura) con su aviso; botón "App" hacia
+              redes.scad.mx.
    CAMBIOS v18: modelo comercial. Identidad de la EO en el encabezado;
               usuario en sesión con "Cerrar sesión"; sesión única por
               dispositivo (id local + aviso de sesión activa); pantallas de
@@ -541,7 +545,7 @@ const TYPES = ["Post","Video","Reel / Short","Historia","En vivo","Carrusel","Cl
 const PALETTE = ["#1F46C4","#C8321F","#16794A","#A86200","#6B5BB8","#0E7C86","#B0337A","#4A5568"];
 const PALETTE_N = {"#1F46C4":"Azul","#C8321F":"Rojo","#16794A":"Verde","#A86200":"Ámbar","#6B5BB8":"Violeta","#0E7C86":"Turquesa","#B0337A":"Magenta","#4A5568":"Grafito"};
 const NET_AB = {facebook:"FB",instagram:"IG",youtube:"YT",tiktok:"TT",x:"X",threads:"TH",linkedin:"IN",whatsapp:"WA"};
-const VERSION = "v18";
+const VERSION = "v19";
 const VERSION_FECHA = "11 oct 2026";
 const PERIODOS = [
   {k:"desdehoy",n:"Desde hoy"},{k:"hoy",n:"Hoy"},{k:"semana",n:"Esta semana"},{k:"mes",n:"Este mes"},
@@ -684,6 +688,7 @@ window.addEventListener("message", e => {
   }
 });
 /* ---------- contexto multiempresa y comercial ---------- */
+const ROL_TXT = {TITULAR:"Titular", COLABORADOR:"Colaborador", ASISTENCIA:"Asistencia SYS"};
 const PERM_TXT = {editar:"Registrar y editar publicaciones", estado:"Cambiar estado (publicado, no publicado…)", eliminar:"Eliminar publicaciones", marcas:"Gestionar marcas", exportar:"Exportar reportes (PDF e impresión)"};
 const puede = k => !!(S.ctx && S.ctx.eo && S.ctx.permisos && S.ctx.permisos[k]);
 const safeLogo = u => safeImg(u) || (/^https:\/\//i.test(u||"") ? u : "");
@@ -702,7 +707,7 @@ function aplicarContexto(m){
   b.toggle("no-estado", !(puede("estado") || puede("editar")));
   b.toggle("marcas-limitadas", !!S.ctx.marcasPermitidas);
   $("#tabUsr").hidden = !(eo && S.ctx.titular);
-  setBanner(m.aviso || "");
+  setBanner(m.aviso || (eo && m.usuario?.rol === "ASISTENCIA" ? "Asistencia SYS: vista de solo lectura. Para crear contenido se requiere alta como usuario de esta empresa." : ""));
   pintarEO(); render();
 }
 // Sustituye el contexto: nada de la empresa anterior se reutiliza
@@ -729,8 +734,8 @@ function pintarEO(){
     box.hidden = false;
   }
   if (c && (c.usuario || c.email)){
-    const rol = c.usuario?.rol === "TITULAR" ? "Titular" : (c.usuario ? "Colaborador" : "");
-    ub.innerHTML = `<span class="un" title="${esc(c.email)}">${esc(c.usuario?.nombre || c.email)}</span>${rol?`<span class="ur">${rol}</span>`:""}<button class="btn ghost sm" id="logoutBtn" type="button">Cerrar sesión</button>`;
+    const rol = ROL_TXT[c.usuario?.rol] || (c.usuario ? "Colaborador" : "");
+    ub.innerHTML = `<span class="un" title="${esc(c.email)}">${esc(c.usuario?.nombre || c.email)}</span>${rol?`<span class="ur">${rol}</span>`:""}<a class="btn ghost sm" href="https://redes.scad.mx/" target="_blank" rel="noopener" title="Abrir la app SCaD Redes">App</a><button class="btn ghost sm" id="logoutBtn" type="button">Cerrar sesión</button>`;
     ub.hidden = false;
   } else { ub.hidden = true; ub.innerHTML = ""; }
 }
@@ -754,8 +759,16 @@ function viewGate(){
         <form id="rf">
           <div class="f"><label class="label" for="rf-n">Nombre de la empresa</label><input id="rf-n" name="nombre" required maxlength="80" placeholder="Ej. Canal Foro CX"></div>
           <div class="f"><label class="label" for="rf-c">Nombre corto (opcional)</label><input id="rf-c" name="corto" maxlength="10" placeholder="Ej. CFCX"><span class="muted" style="font-size:11.5px">Letras y números; se usa como código de tu empresa.</span></div>
-          <div class="f"><label class="label" for="rf-p">Tu nombre</label><input id="rf-p" name="persona" required maxlength="80"></div>
-          <div class="f"><label class="label" for="rf-t">Teléfono (opcional)</label><input id="rf-t" name="telefono" inputmode="tel" maxlength="15"></div>
+          <span class="label" style="margin-top:6px">Tus datos (titular)</span>
+          <div class="f"><label class="label" for="rf-pn">Nombre(s) *</label><input id="rf-pn" name="nombrePersona" required maxlength="60" autocomplete="given-name"></div>
+          <div class="grid2">
+            <div class="f"><label class="label" for="rf-ap">Apellido paterno *</label><input id="rf-ap" name="apellidoPaterno" required maxlength="60"></div>
+            <div class="f"><label class="label" for="rf-am">Apellido materno *</label><input id="rf-am" name="apellidoMaterno" required maxlength="60"></div>
+          </div>
+          <div class="grid2">
+            <div class="f"><label class="label" for="rf-nv">¿Cómo quieres aparecer? *</label><input id="rf-nv" name="nombreVisible" required maxlength="60"></div>
+            <div class="f"><label class="label" for="rf-t">WhatsApp</label><input id="rf-t" name="telefono" type="tel" inputmode="tel" maxlength="15" autocomplete="tel"></div>
+          </div>
           <div class="acts2"><button class="btn primary" type="submit">Crear mi empresa</button></div>
         </form></div>`;
     case "comprar_titular":
@@ -789,7 +802,7 @@ function viewGate(){
     default: {
       const eos = c.eos || [];
       return `<div class="picker"><h2>Elige una empresa</h2><p class="muted" style="margin:0">Tu cuenta tiene acceso a SCaD Redes en varias empresas.</p>
-        ${eos.map(e => { const lg = safeLogo(e.logo); return `<button class="pick" data-pickeo="${esc(e._id)}" type="button">${lg?`<img src="${esc(lg)}" alt="">`:""}<span class="grow">${esc(e.nombre)}</span><span class="muted mono">${e.rol==="TITULAR"?"Titular":"Colaborador"}</span></button>`; }).join("")}</div>`;
+        ${eos.map(e => { const lg = safeLogo(e.logo); return `<button class="pick" data-pickeo="${esc(e._id)}" type="button">${lg?`<img src="${esc(lg)}" alt="">`:""}<span class="grow">${esc(e.nombre)}</span><span class="muted mono">${ROL_TXT[e.rol]||"Colaborador"}</span></button>`; }).join("")}</div>`;
     }
   }
 }
@@ -1779,8 +1792,21 @@ document.addEventListener("submit", async e => {
     e.preventDefault();
     const fd = new FormData(f);
     busy(f, true);
-    try { await request({type:"registrar", datos:{nombre:fd.get("nombre"), corto:fd.get("corto"), persona:fd.get("persona"), telefono:fd.get("telefono")}}, true); toast("Empresa registrada"); }
+    const datos = {nombre:fd.get("nombre"), corto:fd.get("corto"), nombrePersona:fd.get("nombrePersona"), apellidoPaterno:fd.get("apellidoPaterno"),
+      apellidoMaterno:fd.get("apellidoMaterno"), nombreVisible:fd.get("nombreVisible"), telefono:fd.get("telefono")};
+    if (["nombre","nombrePersona","apellidoPaterno","apellidoMaterno","nombreVisible"].some(k => !String(datos[k]||"").trim())){ busy(f, false); toast("Completa los campos requeridos"); return; }
+    try { await request({type:"registrar", datos}, true); toast("Empresa registrada"); }
     catch(err){ busy(f, false); toast(errMsg(err, "registrar la empresa")); }
+  }
+});
+// Registro: propone el nombre de presentación (nombre + apellido paterno) hasta que el usuario lo edite
+let nvManual = false;
+document.addEventListener("input", e => {
+  const id = e.target && e.target.id;
+  if (id === "rf-nv"){ nvManual = true; return; }
+  if ((id === "rf-pn" || id === "rf-ap") && !nvManual){
+    const n = (($("#rf-pn")?.value)||"").trim().split(/\s+/)[0] || "", a = (($("#rf-ap")?.value)||"").trim().split(/\s+/)[0] || "";
+    const nv = $("#rf-nv"); if (nv) nv.value = [n,a].filter(Boolean).join(" ");
   }
 });
 // Actividad: mantiene viva la sesión única (máx. un aviso cada 5 min)
