@@ -4,7 +4,7 @@
    SITIO:     scad.mx
    ARCHIVO:   RED_BACKEND_redes.web.js
               En Wix se instala como:  backend/redes.web.js
-   VERSIÓN:   v2.2 · 2026-10-11
+   VERSIÓN:   v2.3 · 2026-10-11
    MODELO:    Multiempresa gestionado desde Panel SYS + modelo comercial
    DEPENDE:   SCaD_EO, SCaD_USR (transversales, esquema real de SYS)
               RedesCanales, RedesPublicaciones (campo eoId)
@@ -24,6 +24,8 @@
      · Sesión única por usuario: la nueva se rechaza mientras la otra tenga
        actividad en los últimos 30 minutos.
      · Límite de marcas por EO: 3 (SCaD_EO.limiteMarcas lo puede ajustar).
+   CAMBIOS v2.3: imports normales de @wix/pricing-plans y @wix/essentials
+              (requisito: ambos paquetes instalados en el sitio).
    CAMBIOS v2.2: anotaciones de tipo (JSDoc) para el verificador del editor.
    CAMBIOS v2.1: los paquetes de planes se cargan bajo demanda; si no están
               instalados, el módulo carga igual (EO de cortesía funcionan y las
@@ -36,8 +38,9 @@
 import { Permissions, webMethod } from 'wix-web-module';
 import wixData from 'wix-data';
 import { currentMember } from 'wix-members-backend';
-// @wix/pricing-plans y @wix/essentials se cargan solo al consultar planes (ver listarOrdenes),
-// para que el módulo cargue aunque esos paquetes no estén instalados en el sitio.
+// Requieren los paquetes @wix/pricing-plans y @wix/essentials instalados en el sitio
+import { orders } from '@wix/pricing-plans';
+import { auth } from '@wix/essentials';
 
 /* ---------- CONFIGURACIÓN ---------- */
 const CFG = {
@@ -70,14 +73,10 @@ const CAMPOS_FECHA = ['fechaProgramada', 'fechaPublicada'];
 const LIMITE = 1000;
 const MAX_LOTE = 100;
 const OPT = { suppressAuth: true };
-let ordenesElevadas = null;
+const ordenesElevadas = auth.elevate(orders.managementListOrders);
 /** @param {any} opciones
  *  @returns {Promise<any>} */
 async function listarOrdenes(opciones) {
-  if (!ordenesElevadas) {
-    const [{ orders }, { auth }] = await Promise.all([import('@wix/pricing-plans'), import('@wix/essentials')]);
-    ordenesElevadas = auth.elevate(orders.managementListOrders);
-  }
   return ordenesElevadas(opciones);
 }
 
