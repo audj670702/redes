@@ -9,7 +9,7 @@
    PROYECTO:  SCaD Redes · APP
    SITIO:     https://redes.scad.mx  (GitHub Pages · repositorio redes)
    ARCHIVO:   index.html  (+ app.js, sw.js, manifest.webmanifest, icons/)
-   VERSIÓN:   v1.0.0 · 2026-10-12
+   VERSIÓN:   v1.0.1 · 2026-10-12
    DEPENDE:   scad.mx/sys-autenticacion (app=REDES, token SYS)
               /_functions/redesPwaContext · /_functions/redesTokenRefresh
    VISTAS:    1) Presentación y compra · 2) Acceso al panel ·
@@ -99,6 +99,10 @@ button{font:inherit;cursor:pointer}
 .state{margin:22px 0}
 .state h2{font-size:26px;color:var(--navy);margin-bottom:8px}
 .loading{padding:60px 0;text-align:center;color:var(--muted)}
+.install{margin:16px 0 4px;border-color:var(--orange);box-shadow:inset 0 3px 0 var(--orange)}
+.install h2{font-size:22px;color:var(--navy);margin-bottom:8px}
+.install ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.install p{margin:0;font-size:14px}
 @media (max-width:380px){.prices{grid-template-columns:1fr}.hero h1{font-size:34px}}
 </style>
 </head>

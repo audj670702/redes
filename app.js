@@ -2,14 +2,16 @@
    TIPO:      HTML (APP · lógica)
    PROYECTO:  SCaD Redes · APP (redes.scad.mx)
    ARCHIVO:   app.js
-   VERSIÓN:   v1.0.0 · 2026-10-12
+   VERSIÓN:   v1.0.1 · 2026-10-12
+   CAMBIOS v1.0.1: ?install=1 (botón INSTALAR del HUB) muestra cómo instalar
+              la app en el dispositivo.
    SESIÓN:    Token SYS (sys-autenticacion?app=REDES → #t=<token>).
               Se guarda en el dispositivo y se renueva en silencio antes de
               vencer (hasta 30 días desde el inicio de sesión), así la sesión
               sigue abierta aunque la app se cierre o se minimice.
               Solo "Cerrar sesión", la baja del usuario o los 30 días la terminan.
    ========================================================== */
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.0.1';
 const CFG = {
   AUTH: 'https://www.scad.mx/sys-autenticacion',
   CTX: 'https://www.scad.mx/_functions/redesPwaContext',
@@ -39,6 +41,23 @@ const store = {
 const appUrl = () => location.origin + location.pathname;
 let aviso = '';
 let instalar = null;
+let pidioInstalar = false;
+const enApp = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+// Bloque de instalación (llega desde INSTALAR en SCaD HUB: ?install=1)
+function bloqueInstalar() {
+  if (!pidioInstalar) return '';
+  if (enApp()) return `<p class="note">SCaD Redes ya está instalada en este dispositivo.</p>`;
+  if (esIOS()) {
+    return `<section class="card install"><h2>Instala SCaD Redes</h2>
+      <ol><li>Toca <b>Compartir</b> <span aria-hidden="true">⬆︎</span> en la barra del navegador.</li>
+      <li>Elige <b>Agregar a pantalla de inicio</b>.</li><li>Toca <b>Agregar</b>.</li></ol></section>`;
+  }
+  return `<section class="card install"><h2>Instala SCaD Redes</h2>
+    <button class="btn accent block" data-act="instalar" type="button" ${instalar ? '' : 'hidden'}>Instalar en este dispositivo</button>
+    <p class="muted" data-instalar-alt ${instalar ? 'hidden' : ''}>Abre el menú del navegador <b>⋮</b> y elige <b>Instalar app</b> o <b>Agregar a pantalla de inicio</b>.</p></section>`;
+}
 
 /* ---------- token ---------- */
 function expDe(token) {
@@ -51,6 +70,7 @@ function capturarToken() {
   const m = /(?:^#|&)t=([^&]+)/.exec(location.hash || '');
   const q = new URLSearchParams(location.search);
   if (q.get('logoutDone') === '1') { store.del(K.token); store.del(K.ctx); }
+  if (q.get('install') === '1') pidioInstalar = true;
   if (m) { store.set(K.token, decodeURIComponent(m[1])); store.del(K.ctx); }
   if (m || q.toString()) history.replaceState({}, '', appUrl());
 }
@@ -107,7 +127,7 @@ function cerrarSesion() {
 /* ---------- vistas ---------- */
 function vistaPresentacion() {
   $('#onair').hidden = true;
-  return `
+  return `${bloqueInstalar()}
   <section class="hero">
     <h1>Tus redes, <em>al aire</em> y bajo control.</h1>
     <p>Registra, programa y da seguimiento a las publicaciones de tus marcas en Facebook, YouTube, TikTok, Instagram y más, desde un solo panel.</p>
@@ -144,7 +164,7 @@ function vistaEO(c) {
   const a = c.activa || {}, u = c.usuario || {};
   const rol = { TITULAR: 'Titular', COLABORADOR: 'Colaborador', ASISTENCIA: 'Asistencia SYS' }[u.rol] || '';
   const lg = safeImg(a.logo);
-  let h = `
+  let h = `${bloqueInstalar()}
   <section class="eo">
     <div class="lg">${lg ? `<img src="${esc(lg)}" alt="">` : `<span>${iniciales(a.nombre)}</span>`}</div>
     <div><h1>${esc(a.nombre || 'Mi empresa')}</h1>
@@ -222,7 +242,11 @@ document.addEventListener('click', e => {
   const act = b.dataset.act;
   if (act === 'login' || act === 'cambiar') { b.disabled = true; iniciarSesion(); }
   else if (act === 'logout') { b.disabled = true; cerrarSesion(); }
-  else if (act === 'instalar' && instalar) { instalar.prompt(); instalar = null; b.hidden = true; }
+  else if (act === 'instalar' && instalar) {
+    instalar.prompt();
+    instalar.userChoice.then(r => { if (r && r.outcome === 'accepted') pidioInstalar = false; }).catch(() => {});
+    instalar = null; b.hidden = true;
+  }
 });
 
 // Regreso del login a la misma página (solo cambia el #t=)
@@ -237,6 +261,7 @@ setInterval(() => { if (store.get(K.token)) renovarSiHaceFalta(false); }, 30 * 6
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault(); instalar = e;
   document.querySelectorAll('[data-act="instalar"]').forEach(b => { b.hidden = false; });
+  document.querySelectorAll('[data-instalar-alt]').forEach(p => { p.hidden = true; });
 });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {

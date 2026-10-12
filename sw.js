@@ -1,7 +1,7 @@
-/* SCaD Redes · APP · service worker v1.0.0
+/* SCaD Redes · APP · service worker v1.0.1
    Guarda la interfaz para abrir sin conexión. Las llamadas a scad.mx
    (sesión y contexto) nunca se guardan en caché. */
-const CACHE = 'redes-app-v1.0.0';
+const CACHE = 'redes-app-v1.0.1';
 const SHELL = ['./', 'index.html', 'app.js', 'manifest.webmanifest',
   'icons/logo.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 

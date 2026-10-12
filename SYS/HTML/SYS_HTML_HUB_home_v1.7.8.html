@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SCaD HUB — HOME v1.7.8</title>
+<style>
+:root{
+  --bg:#f6f8fb;
+  --white:#fff;
+  --ink:#15253d;
+  --muted:#748096;
+  --line:rgba(21,37,61,.10);
+  --cyan:#18a7bf;
+  --blue:#2478d2;
+  --violet:#7654c6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+body{overflow:hidden}
+button,a{font:inherit}
+a{text-decoration:none;color:inherit}
+.wrap{width:min(1460px,calc(100% - 56px));margin:auto}
+
+/* HEADER */
+header{
+  height:96px;background:rgba(255,255,255,.88);
+  border-bottom:1px solid rgba(21,37,61,.08);
+  display:flex;align-items:center;
+  backdrop-filter:blur(18px);
+  position:relative;z-index:20;
+  box-shadow:0 8px 30px rgba(21,37,61,.035);
+}
+nav{display:flex;align-items:center;width:100%;gap:28px}
+.logo{
+  width:224px;height:76px;object-fit:contain;object-position:left center;
+  flex:0 0 auto;transition:transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.logo:hover{transform:scale(1.025)}
+.links{
+  margin-left:auto;
+  display:flex;align-items:center;gap:5px;
+  padding:5px;
+  border:1px solid rgba(21,37,61,.08);
+  border-radius:999px;
+  background:rgba(246,248,251,.82);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+.links a{
+  position:relative;overflow:hidden;
+  padding:10px 15px;border-radius:999px;
+  font-size:11px;font-weight:850;letter-spacing:.015em;color:#56657a;
+  transition:color .25s ease,transform .25s ease,background .25s ease;
+}
+.links a:before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(110deg,rgba(24,167,191,.10),rgba(36,120,210,.09),rgba(118,84,198,.10));
+  opacity:0;transform:scale(.82);transition:.28s cubic-bezier(.2,.8,.2,1);
+}
+.links a span{position:relative;z-index:1}
+.links a:hover{color:var(--ink);transform:translateY(-1px)}
+.links a:hover:before{opacity:1;transform:scale(1)}
+.links a.active{
+  color:#fff;
+  background:linear-gradient(105deg,#174b78,#285d91);
+  box-shadow:0 5px 15px rgba(25,67,108,.16);
+}
+.login{
+  margin-left:2px;padding:11px 17px;border-radius:999px;
+  border:1px solid rgba(21,37,61,.13);background:#fff;
+  color:var(--ink);font-size:11px;font-weight:900;cursor:pointer;
+  box-shadow:0 5px 16px rgba(21,37,61,.05);
+  transition:.25s ease;
+}
+.login:hover{
+  border-color:rgba(36,120,210,.35);color:var(--blue);
+  transform:translateY(-2px);box-shadow:0 9px 20px rgba(21,37,61,.09)
+}
+
+
+/* HUB MEMBER IDENTITY
+   Independiente de las autorizaciones de cada app.
+   Solo muestra: avatar, nombre y correo autenticado. */
+.member-area{
+  position:relative;
+  margin-left:2px;
+  flex:0 0 auto;
+}
+.member-trigger{
+  display:none;
+  align-items:center;
+  gap:9px;
+  padding:4px 6px 4px 4px;
+  border:0;
+  background:transparent;
+  color:var(--ink);
+  cursor:pointer;
+  border-radius:10px;
+  transition:background .2s ease;
+}
+.member-trigger.visible{display:flex}
+.member-trigger:hover{background:rgba(21,37,61,.045)}
+.member-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#e9eef4;
+  border:1px solid rgba(21,37,61,.10);
+  box-shadow:0 2px 8px rgba(21,37,61,.07);
+}
+.member-trigger-name{
+  max-width:145px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+  line-height:1;
+  font-weight:850;
+  color:#263b54;
+}
+.member-chevron{
+  font-size:9px;
+  color:#8b97a8;
+  transition:transform .18s ease;
+}
+.member-trigger[aria-expanded="true"] .member-chevron{transform:rotate(180deg)}
+
+.identity-card{
+  display:none;
+  position:absolute;
+  top:calc(100% + 11px);
+  right:0;
+  width:286px;
+  padding:18px;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(21,37,61,.10);
+  border-radius:16px;
+  box-shadow:0 18px 50px rgba(21,37,61,.15);
+  backdrop-filter:blur(18px);
+  z-index:80;
+}
+.identity-card.open{
+  display:block;
+  animation:identityOpen .18s ease both;
+}
+.identity-main{
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr);
+  gap:13px;
+  align-items:center;
+}
+.identity-photo{
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#e9eef4;
+  border:1px solid rgba(21,37,61,.10);
+}
+.identity-name{
+  margin:0;
+  font-size:14px;
+  line-height:1.2;
+  font-weight:850;
+  color:var(--ink);
+  overflow-wrap:anywhere;
+}
+.identity-email{
+  margin:5px 0 0;
+  font-size:10.5px;
+  line-height:1.35;
+  color:#748096;
+  overflow-wrap:anywhere;
+}
+.identity-divider{
+  height:1px;
+  margin:15px 0 11px;
+  background:rgba(21,37,61,.08);
+}
+.logout-btn{
+  width:100%;
+  padding:7px 0 2px;
+  border:0;
+  background:transparent;
+  color:#607086;
+  text-align:left;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+  transition:color .18s ease;
+}
+.logout-btn:hover{color:#1f5e95}
+
+@keyframes identityOpen{
+  from{opacity:0;transform:translateY(-5px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* MAIN */
+main{
+  height:calc(100vh - 96px - 30px);
+  min-height:560px;
+  display:flex;align-items:center;
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(24,167,191,.08),transparent 23%),
+    radial-gradient(circle at 18% 92%,rgba(118,84,198,.055),transparent 22%),
+    linear-gradient(180deg,#fbfcfe 0%,#f4f7fa 100%);
+}
+main:after{
+  content:"";position:absolute;left:8%;right:8%;top:49%;
+  height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);
+}
+.home{
+  width:100%;height:100%;
+  padding:26px 0 22px;
+  display:grid;
+  grid-template-rows:38% 62%;
+  position:relative;z-index:1;
+}
+
+/* MESSAGE */
+.intro{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding-bottom:22px;
+}
+.intro h1{
+  margin:0;
+  max-width:920px;
+  font-size:clamp(38px,4.3vw,65px);
+  line-height:.98;
+  letter-spacing:-.052em;
+  font-weight:820;
+}
+.intro h1 .accent{
+  background:linear-gradient(90deg,var(--cyan),var(--blue),var(--violet));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.intro p{
+  margin:18px 0 0;
+  max-width:610px;
+  font-size:15px;line-height:1.5;color:var(--muted);
+}
+
+/* SOLUTIONS AS ONE VISUAL FIELD */
+.solutions{
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:0;
+}
+.sol-label{
+  text-align:center;
+  font-size:10px;font-weight:900;letter-spacing:.18em;
+  text-transform:uppercase;color:#8792a3;
+  margin-bottom:18px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  align-items:stretch;
+  height:205px;
+  min-height:205px;
+  background:rgba(255,255,255,.64);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.item{
+  min-width:0;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  padding:14px 16px 42px;
+  cursor:pointer;
+  transition:.22s ease;
+}
+.item:not(:last-child):after{
+  content:"";position:absolute;right:0;top:25%;bottom:25%;
+  width:1px;background:var(--line);
+}
+.item:before{
+  content:"";position:absolute;inset:0;
+  background:#fff;opacity:0;transition:.22s ease;
+  box-shadow:0 18px 44px rgba(28,48,79,.08);
+}
+.item:hover:before{opacity:.95}
+.item img{
+  position:relative;z-index:1;
+  width:100%;height:112px;max-width:190px;object-fit:contain;
+  transition:.22s ease;
+}
+.item:hover img{transform:translateY(-5px) scale(1.035)}
+.solution-actions{
+  position:absolute;
+  z-index:3;
+  left:0;
+  right:0;
+  bottom:7px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+}
+
+/* ENTRAR: compacto, discreto y claramente principal */
+.enter-btn{
+  appearance:none;
+  border:0;
+  background:transparent;
+  padding:4px 1px;
+  margin:0;
+  color:#315f88;
+  font-size:11px;
+  line-height:1;
+  font-weight:850;
+  letter-spacing:.045em;
+  cursor:pointer;
+  white-space:nowrap;
+  opacity:.88;
+  transition:color .18s ease, opacity .18s ease, transform .18s ease;
+}
+.enter-btn span{
+  display:inline-block;
+  margin-left:2px;
+  font-size:11px;
+  transition:transform .18s ease;
+}
+.enter-btn:hover{
+  color:#174b78;
+  opacity:1;
+  transform:translateY(-1px);
+}
+.enter-btn:hover span{
+  transform:translateX(2px);
+}
+
+/* INSTALAR: todavía menor y visualmente secundaria */
+.install-btn{
+  appearance:none;
+  border:0;
+  background:transparent;
+  padding:3px 0 3px 7px;
+  margin:0;
+  color:#949eab;
+  font-size:9px;
+  line-height:1;
+  font-weight:750;
+  letter-spacing:.025em;
+  cursor:pointer;
+  white-space:nowrap;
+  opacity:.78;
+  position:relative;
+  transition:color .18s ease, opacity .18s ease, transform .18s ease;
+}
+.install-btn:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:2px;
+  bottom:2px;
+  width:1px;
+  background:rgba(21,37,61,.11);
+}
+.install-icon{
+  display:inline-block;
+  margin-right:1px;
+  font-size:9px;
+  line-height:1;
+  transition:transform .18s ease;
+}
+.install-btn:hover{
+  color:#647286;
+  opacity:1;
+  transform:translateY(-1px);
+}
+.install-btn:hover .install-icon{
+  transform:translateY(1px);
+}
+
+/* SMALL INSTITUTIONAL REFERENCE */
+.model-link{
+  margin-top:20px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  color:#66758a;font-size:11.5px;
+}
+.model-link button{
+  border:0;background:none;padding:0;
+  color:var(--ink);font-size:11.5px;font-weight:850;cursor:pointer;
+}
+.model-link button:hover{color:var(--blue)}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--cyan)}
+
+/* MODAL */
+.modal{
+  position:fixed;inset:0;z-index:50;display:none;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(10,18,31,.62);backdrop-filter:blur(9px)
+}
+.modal.open{display:flex}
+.dialog{
+  width:min(620px,100%);background:#fff;border-radius:22px;
+  padding:28px;box-shadow:0 35px 90px rgba(0,0,0,.25);position:relative
+}
+.close{
+  position:absolute;right:14px;top:14px;width:34px;height:34px;
+  border:0;border-radius:50%;background:#eef2f6;color:var(--ink);
+  font-size:20px;cursor:pointer
+}
+.modal-logo{display:block;width:100%;height:130px;object-fit:contain;margin-bottom:16px}
+.dialog h2{font-size:27px;letter-spacing:-.03em;margin:0 0 9px}
+.dialog p{font-size:14px;line-height:1.55;color:#68768a;margin:0 0 22px}
+.actions{display:flex;justify-content:flex-end}
+.access{
+  border:0;border-radius:10px;background:var(--ink);color:#fff;
+  padding:11px 18px;font-size:11px;font-weight:900;cursor:pointer
+}
+.access:hover{background:var(--blue)}
+
+
+.mobile-menu-btn{
+  display:none;
+  width:34px;
+  height:34px;
+  padding:7px;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:4px;
+}
+.mobile-menu-btn span{
+  display:block;
+  width:17px;
+  height:1.5px;
+  border-radius:2px;
+  background:#41536a;
+  transition:.2s ease;
+}
+.mobile-menu-btn.open span:nth-child(1){transform:translateY(5.5px) rotate(45deg)}
+.mobile-menu-btn.open span:nth-child(2){opacity:0}
+.mobile-menu-btn.open span:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
+
+@media(max-width:1000px){
+  body{overflow:auto}
+  header{
+    height:72px;
+    position:sticky;
+    top:0;
+    z-index:30;
+  }
+  .wrap{width:calc(100% - 28px)}
+  nav{gap:8px;position:relative}
+  .logo{width:150px;height:56px}
+
+  .mobile-menu-btn{
+    display:flex;
+    margin-left:auto;
+  }
+
+  .links{
+    display:none;
+    position:absolute;
+    top:59px;
+    right:0;
+    width:min(280px,calc(100vw - 28px));
+    margin:0;
+    padding:8px;
+    flex-direction:column;
+    align-items:stretch;
+    gap:2px;
+    border-radius:14px;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 18px 48px rgba(21,37,61,.15);
+    backdrop-filter:blur(18px);
+  }
+  .links.mobile-open{display:flex}
+  .links a{
+    padding:11px 12px;
+    border-radius:9px;
+    font-size:11px;
+  }
+  .links a.active{
+    background:#eef4fa;
+    color:#174b78;
+    box-shadow:none;
+  }
+
+  .login{
+    margin-left:0;
+    padding:8px 10px;
+    border-radius:9px;
+    font-size:10px;
+    box-shadow:none;
+  }
+
+  main{
+    height:auto;
+    min-height:calc(100vh - 72px);
+    overflow:visible;
+  }
+  main:after{display:none}
+  .home{
+    height:auto;
+    display:block;
+    padding:30px 0 26px;
+  }
+  .intro{
+    padding:8px 8px 30px;
+  }
+  .intro h1{
+    max-width:680px;
+    font-size:clamp(32px,7vw,48px);
+    line-height:1.02;
+    letter-spacing:-.045em;
+  }
+  .intro p{
+    max-width:560px;
+    margin-top:13px;
+    font-size:13px;
+    line-height:1.45;
+  }
+  .sol-label{
+    margin-bottom:12px;
+    font-size:9px;
+    letter-spacing:.14em;
+  }
+
+  .grid{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    height:auto;
+    min-height:0;
+    background:transparent;
+  }
+  .item{
+    display:grid;
+    grid-template-columns:96px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:15px;
+    row-gap:6px;
+    align-items:center;
+    height:80px;
+    min-height:80px;
+    padding:8px 12px;
+    border:1px solid rgba(21,37,61,.11);
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 3px 10px rgba(21,37,61,.045);
+  }
+  .item:not(:last-child):after{display:none}
+  .item:nth-child(odd){border-right:1px solid rgba(21,37,61,.11)}
+  .item:last-child{
+    grid-column:auto;
+    border-right:1px solid rgba(21,37,61,.11);
+    border-bottom:1px solid rgba(21,37,61,.11);
+  }
+  .item img,
+  .item[data-key="gym"] img,
+  .item[data-key="portal"] img,
+  .item[data-key="residencial"] img,
+  .item[data-key="tv"] img,
+  .item[data-key="cpc"] img,
+  .item[data-key="comunidad"] img,
+  .item[data-key="emprendimiento"] img,
+  .item[data-key="redes"] img{
+    grid-column:1;
+    grid-row:1 / span 2;
+    width:100%;
+    max-width:90px;
+    height:66px;
+    object-fit:contain;
+    margin:0;
+  }
+  .item:hover img{transform:none}
+
+  .mobile-solution-copy{
+    display:block;
+    grid-column:2;
+    grid-row:1;
+    align-self:end;
+    min-width:0;
+    padding-bottom:1px;
+  }
+  .mobile-solution-copy strong{
+    display:block;
+    color:#737f91;
+    font-size:11px;
+    line-height:1.2;
+    font-weight:650;
+  }
+
+  .solution-actions{
+    position:static;
+    grid-column:2;
+    grid-row:2;
+    justify-content:flex-start;
+    align-items:flex-start;
+    gap:3px;
+    margin-top:0;
+  }
+  .enter-btn{font-size:10.5px}
+  .enter-btn span{font-size:10.5px}
+  .install-btn{font-size:8.8px}
+  .install-icon{font-size:8.8px}
+
+  .model-link{
+    margin-top:18px;
+    padding:0 10px;
+    gap:7px;
+    flex-wrap:wrap;
+    text-align:center;
+    font-size:10.5px;
+    line-height:1.4;
+  }
+  .model-link button{font-size:10.5px}
+
+  .dialog{
+    width:min(520px,100%);
+    padding:22px 18px 18px;
+    border-radius:18px;
+  }
+  .modal-logo{height:105px;margin-bottom:12px}
+  .dialog h2{font-size:23px}
+  .dialog p{font-size:13px;margin-bottom:18px}
+}
+
+@media(max-width:560px){
+  .wrap{width:calc(100% - 20px)}
+  header{height:66px}
+  .logo{width:126px;height:50px}
+  .mobile-menu-btn{width:31px;height:31px;padding:6px}
+  .login{
+    padding:7px 8px;
+    font-size:9px;
+    white-space:nowrap;
+  }
+  .links{
+    top:54px;
+    width:calc(100vw - 20px);
+  }
+
+  main{min-height:calc(100vh - 66px)}
+  .home{padding:22px 0 22px}
+  .intro{padding:5px 4px 24px}
+  .intro h1{
+    font-size:31px;
+    line-height:1.03;
+    letter-spacing:-.04em;
+  }
+  .intro p{
+    margin-top:11px;
+    font-size:12.3px;
+    line-height:1.42;
+  }
+
+  .grid{gap:10px}
+  .item{
+    grid-template-columns:82px minmax(0,1fr);
+    height:74px;
+    min-height:74px;
+    padding:7px 10px;
+    column-gap:12px;
+    row-gap:5px;
+    border-radius:14px;
+  }
+  .item:last-child{
+    grid-column:auto;
+    min-height:74px;
+    height:74px;
+  }
+  .item img,
+  .item[data-key="gym"] img,
+  .item[data-key="portal"] img,
+  .item[data-key="residencial"] img,
+  .item[data-key="tv"] img,
+  .item[data-key="cpc"] img,
+  .item[data-key="comunidad"] img,
+  .item[data-key="emprendimiento"] img,
+  .item[data-key="redes"] img{
+    max-width:76px;
+    height:58px;
+  }
+  .item:last-child img{max-width:76px;height:58px}
+
+  .mobile-solution-copy strong{
+    font-size:10.5px;
+  }
+
+  .solution-actions{
+    gap:2px;
+    margin-top:1px;
+  }
+  .enter-btn{
+    font-size:10px;
+    padding:3px 0;
+  }
+  .enter-btn span{font-size:10px}
+  .install-btn{
+    font-size:8.4px;
+    padding:2px 0 2px 6px;
+  }
+  .install-icon{font-size:8.4px}
+
+  .model-link{
+    margin-top:15px;
+    font-size:9.8px;
+  }
+  .model-link button{font-size:9.8px}
+
+  .member-trigger{padding:2px}
+  .member-avatar{width:30px;height:30px}
+  .member-trigger-name,.member-chevron{display:none}
+  .identity-card{
+    position:fixed;
+    top:72px;
+    right:10px;
+    left:10px;
+    width:auto;
+    padding:16px;
+    border-radius:14px;
+  }
+  .identity-main{
+    grid-template-columns:50px minmax(0,1fr);
+    gap:11px;
+  }
+  .identity-photo{width:50px;height:50px}
+  .identity-name{font-size:13px}
+  .identity-email{font-size:10px}
+  .logout-btn{font-size:10px}
+
+  .modal{padding:10px}
+  .dialog{
+    max-height:calc(100vh - 20px);
+    overflow:auto;
+    padding:20px 16px 16px;
+    border-radius:16px;
+  }
+  .close{
+    right:10px;top:10px;
+    width:30px;height:30px;
+    font-size:18px;
+  }
+  .modal-logo{height:88px}
+  .dialog h2{font-size:21px}
+  .dialog p{font-size:12.5px}
+  .access{padding:10px 15px;font-size:10px}
+}
+
+@media(max-width:380px){
+  .logo{width:112px}
+  .login{font-size:8.5px;padding:7px 7px}
+  .intro h1{font-size:28px}
+  .item{
+    grid-template-columns:74px minmax(0,1fr);
+    height:70px;
+    min-height:70px;
+    padding:6px 9px;
+    column-gap:10px;
+  }
+  .item img,
+  .item[data-key="gym"] img,
+  .item[data-key="portal"] img,
+  .item[data-key="residencial"] img,
+  .item[data-key="tv"] img,
+  .item[data-key="cpc"] img,
+  .item[data-key="comunidad"] img,
+  .item[data-key="emprendimiento"] img,
+  .item[data-key="redes"] img{
+    max-width:68px;
+    height:52px;
+  }
+  .mobile-solution-copy strong{font-size:11px}
+}
+
+@keyframes navReveal{
+  from{opacity:0;transform:translateY(-7px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.logo{animation:navReveal .55s ease both}
+.links{animation:navReveal .55s .08s ease both}
+.login{animation:navReveal .55s .16s ease both}
+@media(prefers-reduced-motion:reduce){
+  .logo,.links,.login{animation:none!important;transition:none!important}
+}
+
+
+/* v1.5.1 — reglas heredadas LIMITADAS A ESCRITORIO */
+.grid{overflow:visible}
+@media(min-width:1001px){
+  .item{height:205px}
+  .item img{
+    display:block;
+    margin:auto;
+    object-position:center center;
+  }
+  .item[data-key="gym"] img,
+  .item[data-key="portal"] img,
+  .item[data-key="residencial"] img,
+  .item[data-key="tv"] img,
+  .item[data-key="cpc"] img,
+  .item[data-key="comunidad"] img,
+  .item[data-key="emprendimiento"] img,
+  .item[data-key="redes"] img{
+    width:100%;
+    max-width:190px;
+    height:112px;
+  }
+  .mobile-solution-copy{display:none}
+}
+
+
+/* v1.7.7 — blindaje final SOLO MÓVIL */
+@media(max-width:1000px){
+  .grid .item{
+    height:80px !important;
+    min-height:80px !important;
+    max-height:80px !important;
+  }
+}
+@media(max-width:560px){
+  .grid .item{
+    height:74px !important;
+    min-height:74px !important;
+    max-height:74px !important;
+  }
+}
+@media(max-width:380px){
+  .grid .item{
+    height:70px !important;
+    min-height:70px !important;
+    max-height:70px !important;
+  }
+}
+
+
+/* PIE DE PÁGINA */
+.hub-footer{
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:0 16px;
+  color:#8a95a5;
+  font-size:9.5px;
+  line-height:1;
+  letter-spacing:.035em;
+  background:#f6f8fb;
+  border-top:1px solid rgba(21,37,61,.06);
+}
+.hub-footer .sep{color:#c0c7d0}
+.hub-footer a{
+  color:inherit;
+  text-decoration:none;
+}
+.hub-footer a:hover{color:var(--blue)}
+
+@media(max-width:560px){
+  .hub-footer{
+    height:28px;
+    padding:0 12px;
+    font-size:8.8px;
+  }
+}
+
+
+/* v1.7.8 — SCaD Redes se integra a la familia (octava solución, al final) */
+
+/* v1.7.5 — SCaD Emprendimiento primero SOLO en móvil */
+@media(max-width:1000px){
+  .grid .item[data-key="emprendimiento"]{
+    order:-1;
+  }
+}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <img class="logo" src="https://static.wixstatic.com/media/0492f8_54e997b48f5746e7a093120d6e30a48d~mv2.png" alt="SCaD HUB">
+      <div class="links" id="mainMenu">
+        <a href="#" id="modeloNav"><span>Modelo SCaD</span></a>
+        <a href="#soluciones" class="active"><span>Soluciones</span></a>
+        <a href="#"><span>Nosotros</span></a>
+        <a href="#"><span>Contacto</span></a>
+      </div>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <button class="login" id="login">Iniciar sesión</button>
+
+      <div class="member-area" id="memberArea">
+        <button class="member-trigger" id="memberTrigger" type="button" aria-expanded="false" aria-controls="identityCard">
+          <img class="member-avatar" id="memberAvatar" alt="">
+          <span class="member-trigger-name" id="memberTriggerName"></span>
+          <span class="member-chevron">▾</span>
+        </button>
+
+        <div class="identity-card" id="identityCard" role="dialog" aria-label="Tarjeta de identidad SCaD HUB">
+          <div class="identity-main">
+            <img class="identity-photo" id="identityPhoto" alt="">
+            <div>
+              <p class="identity-name" id="identityName"></p>
+              <p class="identity-email" id="identityEmail"></p>
+            </div>
+          </div>
+          <div class="identity-divider"></div>
+          <button class="logout-btn" id="logout" type="button">Cerrar sesión</button>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap home">
+    <section class="intro">
+      <h1>Soluciones para <span class="accent">controlar, operar y evolucionar.</span></h1>
+      <p>Tecnología aplicada a necesidades concretas mediante soluciones digitales adaptadas a cada contexto.</p>
+    </section>
+
+    <section class="solutions" id="soluciones">
+      <div class="sol-label">Soluciones</div>
+      <div class="grid">
+        <article class="item" data-key="gym">
+          <img src="https://static.wixstatic.com/media/0492f8_0947d49cb84b4b4cb3bbaa8f5456bff3~mv2.png" alt="GYM Entrenamiento">
+          <div class="mobile-solution-copy"><strong>Entrenamiento en gimnasio</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="portal">
+          <img src="https://static.wixstatic.com/media/0492f8_bbe4ecae8d2c4fef983d88cb4ab7b784~mv2.png" alt="Portal Operativo">
+          <div class="mobile-solution-copy"><strong>Operación y control</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="residencial">
+          <img src="https://static.wixstatic.com/media/0492f8_8db46e9a50a34428a7d86e8690c263be~mv2.png" alt="SCaD Residencial">
+          <div class="mobile-solution-copy"><strong>Gestión residencial</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="tv">
+          <img src="https://static.wixstatic.com/media/0492f8_c8b3b6cd5c1a4c1bb3b11a26cb20bed3~mv2.png" alt="TV Digital Internet">
+          <div class="mobile-solution-copy"><strong>Televisión por internet</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="cpc">
+          <img src="https://static.wixstatic.com/media/0492f8_594afd2181ea4fd09eeee41d092eb429~mv2.png" alt="CPC e-Learning">
+          <div class="mobile-solution-copy"><strong>Capacitación en línea</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="comunidad">
+          <img src="https://static.wixstatic.com/media/0492f8_717a24fbeac84446a544e257c929ea02~mv2.png" alt="SCaD Comunidad">
+          <div class="mobile-solution-copy"><strong>Comunidad y servicios</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="emprendimiento">
+          <img src="https://static.wixstatic.com/media/0492f8_f6249dcefa264a99b88453c568a60c47~mv2.png" alt="SCaD Emprendimiento">
+          <div class="mobile-solution-copy"><strong>Planeación de emprendimiento</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+        <article class="item" data-key="redes">
+          <img src="https://static.wixstatic.com/media/0492f8_ce8f3c68f20340c38b3c63588ead5fb8~mv2.png" alt="SCaD Redes">
+          <div class="mobile-solution-copy"><strong>Gestión de redes sociales</strong></div>
+          <div class="solution-actions"><button class="enter-btn" type="button">ENTRAR <span>→</span></button><button class="install-btn" type="button" aria-label="Instalar app"><span class="install-icon">↓</span> INSTALAR</button></div>
+        </article>
+      </div>
+
+      <div class="model-link">
+        <span class="dot"></span>
+        <span>Una base institucional común para soluciones adaptadas a distintos contextos.</span>
+        <button id="modeloLink">Conocer el Modelo SCaD →</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="hub-footer">
+  <span>v.1.7.8</span>
+  <span class="sep">|</span>
+  <span>2026</span>
+  <span class="sep">|</span>
+  <a href="mailto:logcontrol@scad.mx">logcontrol@scad.mx</a>
+</footer>
+
+
+<div class="modal" id="modal">
+  <div class="dialog">
+    <button class="close" id="close">×</button>
+    <img class="modal-logo" id="modalLogo" alt="">
+    <h2 id="modalTitle"></h2>
+    <p id="modalText"></p>
+    <div class="actions"><button class="access" id="access">ACCEDER →</button></div>
+  </div>
+</div>
+
+<script>
+const data={
+ gym:{
+   title:"GYM Entrenamiento",
+   logo:"https://static.wixstatic.com/media/0492f8_0947d49cb84b4b4cb3bbaa8f5456bff3~mv2.png",
+   text:"Solución digital orientada al entrenamiento en gimnasio y al seguimiento personalizado del proceso de entrenamiento.",
+   url:"https://gym.scad.mx/", installUrl:"https://gym.scad.mx/?install=1"
+ },
+ portal:{
+   title:"Portal Operativo",
+   logo:"https://static.wixstatic.com/media/0492f8_bbe4ecae8d2c4fef983d88cb4ab7b784~mv2.png",
+   text:"Solución SCaD enfocada en operación, control y eficiencia para concentrar herramientas de gestión y seguimiento operativo.",
+   url:"https://portaloperativo.scad.mx/", installUrl:"https://portaloperativo.scad.mx/?install=1"
+ },
+ residencial:{
+   title:"SCaD Residencial",
+   logo:"https://static.wixstatic.com/media/0492f8_8db46e9a50a34428a7d86e8690c263be~mv2.png",
+   text:"Solución digital para la operación residencial, comunicación, servicios y gestión de accesos.",
+   url:"https://residencial.scad.mx/", installUrl:"https://residencial.scad.mx/?install=1"
+ },
+ tv:{
+   title:"TV Digital Internet",
+   logo:"https://static.wixstatic.com/media/0492f8_c8b3b6cd5c1a4c1bb3b11a26cb20bed3~mv2.png",
+   text:"Plataforma digital para distribución y acceso a contenidos audiovisuales mediante Internet.",
+   url:"https://qrotv.scad.mx/", installUrl:"https://qrotv.scad.mx/?install=1"
+ },
+ cpc:{
+   title:"CPC · e-Learning",
+   logo:"https://static.wixstatic.com/media/0492f8_594afd2181ea4fd09eeee41d092eb429~mv2.png",
+   text:"Entorno digital de aprendizaje para programas y contenidos de formación.",
+   url:"https://cpc.scad.mx/", installUrl:"https://cpc.scad.mx/?install=1"
+ },
+ comunidad:{
+   title:"SCaD Comunidad",
+   logo:"https://static.wixstatic.com/media/0492f8_717a24fbeac84446a544e257c929ea02~mv2.png",
+   text:"Espacio digital para integrar información, servicios y herramientas de la comunidad.",
+   url:"https://comunidad.scad.mx/", installUrl:"https://comunidad.scad.mx/?install=1"
+ },
+ emprendimiento:{
+   title:"SCaD Emprendimiento",
+   logo:"https://static.wixstatic.com/media/0492f8_f6249dcefa264a99b88453c568a60c47~mv2.png",
+   text:"Herramienta visual de planeación de primera capa para ordenar, priorizar y dar claridad a los elementos fundamentales de un emprendimiento antes de su ejecución.",
+   url:"https://www.scad.mx/emp-plan-inicial",
+   installUrl:"https://app.scad.mx/?install=1"
+ },
+ redes:{
+   title:"SCaD Redes",
+   logo:"https://static.wixstatic.com/media/0492f8_ce8f3c68f20340c38b3c63588ead5fb8~mv2.png",
+   text:"Solución digital para registrar, programar y controlar la publicación de contenidos de tus marcas en redes sociales.",
+   url:"https://redes.scad.mx/", installUrl:"https://redes.scad.mx/?install=1"
+ }
+};
+
+const modal=document.getElementById("modal");
+const modalLogo=document.getElementById("modalLogo");
+const modalTitle=document.getElementById("modalTitle");
+const modalText=document.getElementById("modalText");
+let current=null;
+
+document.querySelectorAll(".item").forEach(el=>{
+  const key=el.dataset.key;
+  const info=data[key];
+
+  el.addEventListener("click",(e)=>{
+    if(e.target.closest(".solution-actions")) return;
+    current=info;
+    modalLogo.src=current.logo;
+    modalLogo.alt=current.title;
+    modalTitle.textContent=current.title;
+    modalText.textContent=current.text;
+    modal.classList.add("open");
+  });
+
+  el.querySelector(".enter-btn").addEventListener("click",(e)=>{
+    e.stopPropagation();
+    window.location.href=info.url;
+  });
+
+  el.querySelector(".install-btn").addEventListener("click",(e)=>{
+    e.stopPropagation();
+    window.location.href=info.installUrl;
+  });
+});
+function closeModal(){modal.classList.remove("open")}
+document.getElementById("close").onclick=closeModal;
+modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+document.getElementById("access").onclick=()=>{if(current)location.href=current.url};
+
+
+
+/* MENU MÓVIL */
+const mobileMenuBtn=document.getElementById("mobileMenuBtn");
+const mainMenu=document.getElementById("mainMenu");
+
+function closeMobileMenu(){
+  mainMenu.classList.remove("mobile-open");
+  mobileMenuBtn.classList.remove("open");
+  mobileMenuBtn.setAttribute("aria-expanded","false");
+  mobileMenuBtn.setAttribute("aria-label","Abrir menú");
+}
+
+mobileMenuBtn.addEventListener("click",(e)=>{
+  e.stopPropagation();
+  const open=!mainMenu.classList.contains("mobile-open");
+  mainMenu.classList.toggle("mobile-open",open);
+  mobileMenuBtn.classList.toggle("open",open);
+  mobileMenuBtn.setAttribute("aria-expanded",String(open));
+  mobileMenuBtn.setAttribute("aria-label",open ? "Cerrar menú" : "Abrir menú");
+});
+
+mainMenu.addEventListener("click",(e)=>{
+  if(e.target.closest("a")) closeMobileMenu();
+});
+
+window.addEventListener("resize",()=>{
+  if(window.innerWidth>1000) closeMobileMenu();
+});
+
+/* ==========================================================
+   IDENTIDAD SCaD HUB
+   El HUB solo administra identidad visual del miembro:
+   avatar + nombre + correo autenticado.
+   Las autorizaciones de cada solución permanecen en cada app.
+   ========================================================== */
+const loginBtn=document.getElementById("login");
+const memberArea=document.getElementById("memberArea");
+const memberTrigger=document.getElementById("memberTrigger");
+const identityCard=document.getElementById("identityCard");
+const memberAvatar=document.getElementById("memberAvatar");
+const memberTriggerName=document.getElementById("memberTriggerName");
+const identityPhoto=document.getElementById("identityPhoto");
+const identityName=document.getElementById("identityName");
+const identityEmail=document.getElementById("identityEmail");
+const logoutBtn=document.getElementById("logout");
+
+const HUB_DEFAULT_AVATAR =
+  'data:image/svg+xml;charset=UTF-8,' +
+  encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+    <rect width="120" height="120" rx="60" fill="#E9EEF4"/>
+    <circle cx="60" cy="45" r="21" fill="#AAB5C2"/>
+    <path d="M24 103c4-23 18-35 36-35s32 12 36 35" fill="#AAB5C2"/>
+  </svg>`);
+
+let hubMember=null;
+
+function closeIdentityCard(){
+  identityCard.classList.remove("open");
+  memberTrigger.setAttribute("aria-expanded","false");
+}
+
+function setHubMember(member){
+  if(!member || !member.name || !member.email){
+    clearHubMember();
+    return;
+  }
+
+  hubMember={
+    name:String(member.name).trim(),
+    email:String(member.email).trim(),
+    photoUrl:member.photoUrl ? String(member.photoUrl) : HUB_DEFAULT_AVATAR
+  };
+
+  const photo=hubMember.photoUrl || HUB_DEFAULT_AVATAR;
+
+  memberAvatar.src=photo;
+  identityPhoto.src=photo;
+  memberAvatar.alt=`Avatar de ${hubMember.name}`;
+  identityPhoto.alt=`Foto de ${hubMember.name}`;
+  memberTriggerName.textContent=hubMember.name;
+  identityName.textContent=hubMember.name;
+  identityEmail.textContent=hubMember.email;
+
+  loginBtn.style.display="none";
+  memberTrigger.classList.add("visible");
+  closeIdentityCard();
+}
+
+function clearHubMember(){
+  hubMember=null;
+  memberTrigger.classList.remove("visible");
+  loginBtn.style.display="";
+  memberAvatar.removeAttribute("src");
+  identityPhoto.removeAttribute("src");
+  memberTriggerName.textContent="";
+  identityName.textContent="";
+  identityEmail.textContent="";
+  closeIdentityCard();
+}
+
+memberTrigger.addEventListener("click",(e)=>{
+  e.stopPropagation();
+  const willOpen=!identityCard.classList.contains("open");
+  identityCard.classList.toggle("open",willOpen);
+  memberTrigger.setAttribute("aria-expanded",String(willOpen));
+});
+
+identityCard.addEventListener("click",e=>e.stopPropagation());
+document.addEventListener("click",()=>{closeIdentityCard();closeMobileMenu();});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape") closeIdentityCard();
+});
+
+/* ==========================================================
+   PUENTE REAL HTML <-> WIX MEMBERS
+   El HTML vive dentro de #html1, por eso NO puede ejecutar
+   wix-members-frontend directamente. Se comunica con la página Wix.
+   ========================================================== */
+const HUB_PARENT_ORIGIN=(()=>{
+  try{
+    return document.referrer ? new URL(document.referrer).origin : "*";
+  }catch(e){
+    return "*";
+  }
+})();
+
+function sendToWix(type,payload={}){
+  window.parent.postMessage({type,...payload},HUB_PARENT_ORIGIN);
+}
+
+window.SCaDHUB={
+  setMember:setHubMember,
+  clearMember:clearHubMember
+};
+
+loginBtn.onclick=()=>{
+  loginBtn.disabled=true;
+  sendToWix("HUB_LOGIN");
+  setTimeout(()=>{loginBtn.disabled=false},1200);
+};
+
+logoutBtn.onclick=()=>{
+  logoutBtn.disabled=true;
+  sendToWix("HUB_LOGOUT");
+  setTimeout(()=>{logoutBtn.disabled=false},1200);
+};
+
+window.addEventListener("message",(event)=>{
+  const msg=event.data;
+  if(!msg || typeof msg!=="object" || !msg.type) return;
+
+  if(msg.type==="HUB_MEMBER"){
+    setHubMember({
+      name:msg.name || "Miembro",
+      email:msg.email || "",
+      photoUrl:msg.photoUrl || HUB_DEFAULT_AVATAR
+    });
+    loginBtn.disabled=false;
+    logoutBtn.disabled=false;
+  }
+
+  if(msg.type==="HUB_NO_MEMBER"){
+    clearHubMember();
+    loginBtn.disabled=false;
+    logoutBtn.disabled=false;
+  }
+
+  if(msg.type==="HUB_AUTH_ERROR"){
+    loginBtn.disabled=false;
+    logoutBtn.disabled=false;
+    console.warn("SCaD HUB / Wix Members:",msg.message || "Error de autenticación");
+  }
+});
+
+/* Avisar a Wix que el componente ya cargó.
+   La página responde con HUB_MEMBER o HUB_NO_MEMBER. */
+window.addEventListener("load",()=>{
+  sendToWix("HUB_READY");
+});
+
+["modeloNav","modeloLink"].forEach(id=>{
+ document.getElementById(id).onclick=e=>{
+   e.preventDefault();
+   alert("Abrir aquí la referencia institucional del Modelo SCaD.");
+ };
+});
+</script>
+</body>
+</html>
