@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+:root{--navy:#062B62;--orange:#FE6B02;--ink:#141922;--muted:#5D6675;--line:#D9DFE7;--bg:#F4F6F9;--ok:#16794A;--live:#C8321F}
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#fff;font-family:Inter,"Noto Color Emoji",sans-serif;color:var(--ink)}
+.stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 85% 12%,rgba(254,107,2,.07),transparent 30%),radial-gradient(circle at 10% 95%,rgba(6,43,98,.07),transparent 32%),#fff}
+.sc{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.cap{position:absolute;left:130px;top:250px;width:640px}
+.cap .k{font-size:22px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+.cap h2{font-family:"Inter Display",Inter,sans-serif;font-size:76px;line-height:1.02;letter-spacing:-.035em;margin:18px 0 0;color:var(--navy);font-weight:800}
+.cap p{font-size:30px;line-height:1.4;color:var(--muted);margin:26px 0 0}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:22px;box-shadow:0 30px 70px rgba(6,43,98,.12)}
+.chip{display:inline-flex;align-items:center;gap:14px;padding:16px 26px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-size:30px;font-weight:700;box-shadow:0 14px 34px rgba(6,43,98,.12)}
+.chip b{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:22px}
+.bar{position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(90deg,var(--navy) 0 50%,var(--orange) 50% 100%)}
+/* panel */
+.pan{left:820px;top:150px;width:980px;height:780px;padding:34px}
+.pan .hd{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--ink);padding-bottom:20px}
+.pan .hd h3{font-family:"Inter Display",Inter;font-size:40px;margin:0;color:var(--navy);letter-spacing:-.02em}
+.pan .hd span{font-size:20px;color:var(--muted)}
+.air{font-weight:800;font-size:18px;letter-spacing:.14em;color:var(--live);border:2px solid var(--live);padding:3px 10px;border-radius:5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}
+.st{border:1.5px solid var(--line);border-radius:14px;padding:16px 18px}
+.st i{font-style:normal;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.st b{display:block;font-size:54px;font-weight:800;color:var(--navy);line-height:1.1}
+.st.al b{color:var(--live)}
+.sb{display:grid;grid-template-columns:repeat(5,1fr);background:#2F4A72;border-radius:12px;overflow:hidden;margin-bottom:18px}
+.sb div{padding:12px 6px;text-align:center;color:#fff;font-size:17px;font-weight:700;border-right:1px solid rgba(255,255,255,.15)}
+.sb div span{display:block;font-size:24px}
+.sb div.on{background:#fff;color:var(--navy)}
+.row{display:grid;grid-template-columns:150px 70px 1fr 200px 60px;align-items:center;gap:14px;padding:14px 8px;border-bottom:1px solid #EEF1F4;font-size:21px}
+.row .m{display:flex;align-items:center;gap:8px;font-weight:600}
+.dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+.net{font-size:15px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:3px 8px;margin-right:4px;color:#334155}
+/* calendario */
+.cal{left:820px;top:150px;width:980px;height:780px;padding:32px}
+.cal h3{margin:0 0 18px;font-family:"Inter Display",Inter;font-size:40px;color:var(--navy)}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.grid7 .dw{font-size:16px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:center}
+.day{height:104px;border:1.5px solid #E6EAF0;border-radius:12px;padding:8px;font-size:18px;color:#94A3B8;position:relative}
+.day.today{border-color:var(--orange);box-shadow:inset 0 0 0 2px var(--orange)}
+.ev{margin-top:6px;border-radius:8px;padding:5px 8px;font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
+/* serie */
+.pcard{width:520px;padding:26px 28px}
+.pcard h4{margin:0;font-size:32px;color:var(--navy)}
+.pcard p{margin:8px 0 0;font-size:21px;color:var(--muted)}
+.date{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:150px;height:150px;border-radius:20px;background:#fff;border:2px solid var(--line);box-shadow:0 18px 40px rgba(6,43,98,.12)}
+.date small{font-size:22px;font-weight:700;color:var(--orange);text-transform:uppercase}
+.date b{font-size:64px;color:var(--navy);line-height:1}
+/* estados */
+.lane{left:330px;top:384px;width:1320px;height:6px;background:#E3E8EF;border-radius:6px}
+.stp{position:absolute;top:276px;width:200px;text-align:center}
+.stp .o{width:108px;height:108px;margin:0 auto;border-radius:50%;background:#fff;border:3px solid #DCE2EA;display:grid;place-items:center;font-size:50px}
+.stp .o.on{border-color:var(--orange);box-shadow:0 0 0 10px rgba(254,107,2,.12)}
+.stp .o.ok{border-color:var(--ok);box-shadow:0 0 0 10px rgba(22,121,74,.12)}
+.stp div.t{margin-top:14px;font-size:24px;font-weight:700;color:var(--navy)}
+/* colaboradores */
+.usr{width:880px;padding:22px 26px;display:grid;grid-template-columns:86px 1fr auto;gap:22px;align-items:center}
+.av{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:34px;font-weight:800}
+.usr h5{margin:0;font-size:28px;color:var(--ink)}
+.usr .r{font-size:19px;color:var(--muted);margin-top:4px}
+.tg{display:inline-block;font-size:16px;font-weight:700;padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);margin:8px 6px 0 0;color:#334155}
+.tg.on{border-color:var(--ok);color:var(--ok);background:#F0FAF4}
+.tg.br{border-color:var(--orange);color:#9A3F00;background:#FFF4EC}
+.badge{font-size:16px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:8px}
+/* teléfono */
+.phone{width:400px;height:820px;border-radius:56px;background:#0E1726;padding:16px;box-shadow:0 40px 90px rgba(6,43,98,.28)}
+.scr{width:100%;height:100%;border-radius:42px;background:#F4F6F9;overflow:hidden;padding:30px 22px}
+.scr .lg{height:46px}
+.scr h6{margin:18px 0 4px;font-size:30px;color:var(--navy);font-family:"Inter Display",Inter}
+.scr .who{font-size:15px;color:var(--muted)}
+.scr .btn{margin:16px 0;height:52px;border-radius:12px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:18px}
+.bc{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.bc .h{padding:12px 14px;border-left:6px solid;font-weight:800;font-size:19px}
+.bc .n{display:flex;gap:8px;padding:0 14px 12px;flex-wrap:wrap}
+.bc .n span{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:14px;font-weight:700}
+.bc .n b{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;color:#fff;font-size:11px}
+.pdf{width:420px;height:540px;padding:30px}
+.pdf .l{height:12px;border-radius:6px;background:#E8EDF3;margin:12px 0}
+/* cierre */
+.price{width:380px;padding:28px 30px;text-align:left}
+.price i{font-style:normal;font-size:18px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+.price b{display:block;font-size:84px;font-weight:800;color:var(--navy);line-height:1.05;letter-spacing:-.03em}
+.price b small{font-size:26px;color:var(--muted);font-weight:600;letter-spacing:0}
+.price span{font-size:20px;color:var(--muted)}
+.url{font-size:48px;font-weight:800;color:#fff;background:var(--orange);padding:16px 40px;border-radius:999px;letter-spacing:-.01em}
+</style></head>
+<body>
+<div class="stage" id="stage">
+
+<!-- S1 · logo -->
+<div class="sc" id="s1">
+  <img class="abs" id="l-mark" src="mark.png" style="left:810px;top:150px;width:300px">
+  <img class="abs" id="l-scad" src="scad.png" style="left:820px;top:445px;width:280px">
+  <img class="abs" id="l-redes" src="redes.png" style="left:715px;top:525px;width:490px">
+  <img class="abs" id="l-lema" src="lema.png" style="left:730px;top:640px;width:460px">
+  <div class="abs" id="l-hub" style="left:0;right:0;top:860px;text-align:center;font-size:24px;font-weight:700;letter-spacing:.2em;color:#94A3B8">FAMILIA SCaD HUB</div>
+</div>
+
+<!-- S2 · problema → un solo panel -->
+<div class="sc" id="s2">
+  <div class="cap"><div class="k">Para equipos de contenido</div><h2 id="s2h">¿Publicas en varias redes y para varias marcas?</h2><p id="s2p">Ideas, fechas, ligas y pendientes regados en chats, hojas y notas.</p></div>
+  <div id="chips"></div>
+  <div class="abs card" id="s2one" style="left:1080px;top:420px;width:620px;height:240px;display:grid;place-items:center;text-align:center">
+    <div><div style="font-size:24px;font-weight:800;letter-spacing:.16em;color:var(--orange)">SCaD REDES</div>
+    <div style="font-family:'Inter Display',Inter;font-size:60px;font-weight:800;color:var(--navy);letter-spacing:-.03em;margin-top:8px">Todo en un solo panel</div></div>
+  </div>
+</div>
+
+<!-- S3 · panel -->
+<div class="sc" id="s3">
+  <div class="cap"><div class="k">Panel de publicaciones</div><h2>Registra y controla cada publicación</h2><p>Por marca y por red social, con su fecha, hora, estado y liga publicada.</p></div>
+  <div class="abs card pan" id="pan">
+    <div class="hd"><div><h3>Canal Foro CX</h3><span>Panel de publicaciones · SCaD Redes</span></div><span class="air">AL AIRE</span></div>
+    <div class="stats">
+      <div class="st"><i>Hoy</i><b id="c1">0</b></div><div class="st"><i>Esta semana</i><b id="c2">0</b></div>
+      <div class="st"><i>En revisión</i><b id="c3">0</b></div><div class="st al"><i>Atrasadas</i><b id="c4">0</b></div>
+    </div>
+    <div class="sb"><div class="on"><span>📋</span>Todos</div><div><span>💡</span>Idea</div><div><span>⏳</span>Revisión</div><div><span>📅</span>Programado</div><div><span>✅</span>Publicado</div></div>
+    <div id="rows"></div>
+  </div>
+</div>
+
+<!-- S4 · calendario -->
+<div class="sc" id="s4">
+  <div class="cap"><div class="k">Calendario y tablero</div><h2>Lo que sale hoy, esta semana y lo atrasado</h2><p>Vista mensual con el color de cada marca y alertas de lo que no se registró.</p></div>
+  <div class="abs card cal"><h3>Octubre 2026</h3><div class="grid7" id="cal"></div></div>
+</div>
+
+<!-- S5 · series -->
+<div class="sc" id="s5">
+  <div class="cap"><div class="k">Series de fechas</div><h2>La misma publicación en varias fechas</h2><p>Prográmala una vez y repítela en los días que elijas, en un solo paso.</p></div>
+  <div class="abs card pcard" id="s5card" style="left:1050px;top:200px"><h4>🎬 Estreno: Foro del Lunes</h4><p>Facebook · YouTube · 19:00 h</p></div>
+  <div id="dates"></div>
+</div>
+
+<!-- S6 · estados -->
+<div class="sc" id="s6">
+  <div class="cap" style="top:600px;left:130px;width:1200px"><div class="k">Control de estado</div><h2 style="font-size:64px">De la idea al aire, sin perder nada</h2></div>
+  <div class="abs lane"></div><div class="abs" id="lanefill" style="left:330px;top:384px;height:6px;background:var(--orange);border-radius:6px;width:0"></div>
+  <div id="steps"></div>
+  <div class="abs card" id="s6ok" style="left:1380px;top:520px;padding:20px 26px;font-size:24px;font-weight:700;color:var(--ok)">🔗 Liga de publicación registrada</div>
+</div>
+
+<!-- S7 · colaboradores -->
+<div class="sc" id="s7">
+  <div class="cap"><div class="k">Colaboradores</div><h2>Invita a tu equipo con permisos a la medida</h2><p>Define qué puede hacer cada quien y en qué marcas. Una sesión activa por cuenta.</p></div>
+  <div id="users"></div>
+</div>
+
+<!-- S8 · app + pdf -->
+<div class="sc" id="s8">
+  <div class="cap"><div class="k">App y reportes</div><h2>Tus redes a un toque y reportes en PDF</h2><p>Instala la app en tu teléfono y comparte reportes con la identidad de tu marca.</p></div>
+  <div class="abs card pdf" id="pdf" style="left:880px;top:300px">
+    <div style="display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--navy);padding-bottom:14px"><img src="mark.png" style="height:56px"><div><div style="font-weight:800;font-size:22px;color:var(--navy)">Reporte de publicaciones</div><div style="font-size:15px;color:var(--muted)">Canal Foro CX · Octubre</div></div></div>
+    <div style="margin-top:18px;height:34px;border-radius:6px;background:#1F46C4"></div>
+    <div class="l"></div><div class="l" style="width:86%"></div><div class="l"></div><div class="l" style="width:72%"></div><div class="l"></div><div class="l" style="width:90%"></div><div class="l" style="width:64%"></div>
+    <div style="position:absolute;right:26px;bottom:24px;font-weight:800;font-size:22px;color:#fff;background:var(--live);padding:6px 14px;border-radius:8px">PDF</div>
+  </div>
+  <div class="abs phone" id="phone" style="left:1380px;top:130px"><div class="scr">
+    <img class="lg" src="mark.png"><h6>Canal Foro CX</h6><div class="who">Titular</div><div class="btn">Entrar al panel</div>
+    <div class="bc"><div class="h" style="border-color:#1F46C4">Canal Foro CX</div><div class="n"><span><b style="background:#1877F2">f</b>Facebook</span><span><b style="background:#FF0000">▶</b>YouTube</span></div></div>
+    <div class="bc"><div class="h" style="border-color:#C8321F">TV Digital Internet</div><div class="n"><span><b style="background:#1877F2">f</b>Facebook</span><span><b style="background:#111">♪</b>TikTok</span></div></div>
+  </div></div>
+</div>
+
+<!-- S9 · cierre -->
+<div class="sc" id="s9">
+  <img class="abs" id="f-logo" src="full.png" style="left:160px;top:190px;width:600px">
+  <div class="abs card price" id="p1" style="left:930px;top:250px"><i>Plan Redes</i><b>$49 <small>MXN / mes</small></b><span>Titular · panel completo · hasta 3 marcas</span></div>
+  <div class="abs card price" id="p2" style="left:1370px;top:250px"><i>Colaborador</i><b>$39 <small>MXN / mes</small></b><span>Por cada integrante de tu equipo</span></div>
+  <div class="abs" id="f-url" style="left:930px;top:610px"><span class="url">redes.scad.mx</span></div>
+  <div class="abs" id="f-hub" style="left:934px;top:740px;font-size:24px;font-weight:700;letter-spacing:.18em;color:#94A3B8">PARTE DE LA FAMILIA SCaD HUB</div>
+</div>
+
+<div class="bar"></div>
+</div>
+
+<script>
+const NET=[["Facebook","#1877F2","f"],["Instagram","#C13584","IG"],["YouTube","#FF0000","▶"],["TikTok","#111","♪"],["X","#111","X"],["Threads","#111","@"],["LinkedIn","#0A66C2","in"],["WhatsApp","#25D366","W"]];
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const P=(t,a,b)=>cl((t-a)/(b-a));
+const E=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;            // easeInOutCubic
+const O=x=>1-Math.pow(1-x,3);                                 // easeOutCubic
+const B=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}; // easeOutBack
+function st(el,o,tx=0,ty=0,s=1,r=0){el.style.opacity=o;el.style.transform=`translate(${tx}px,${ty}px) scale(${s}) rotate(${r}deg)`}
+const SC=[["s1",0,4.6],["s2",4.6,9.4],["s3",9.4,14.6],["s4",14.6,19],["s5",19,23.2],["s6",23.2,27.6],["s7",27.6,31.6],["s8",31.6,35.6],["s9",35.6,42]];
+const DUR=42;
+
+// construir piezas
+$("chips").innerHTML=NET.map((n,i)=>`<div class="abs chip" id="ch${i}"><b style="background:${n[1]}">${n[2]}</b>${n[0]}</div>`).join("");
+const ROWS=[["Lun 12","19:00","Estreno: Foro del Lunes","#1F46C4","Canal Foro CX","✅"],["Mar 13","10:00","Cápsula informativa","#C8321F","TV Digital Internet","📅"],["Mié 14","18:30","Entrevista en vivo","#1F46C4","Canal Foro CX","📅"],["Jue 15","12:00","Resumen semanal","#C8321F","TV Digital Internet","⏳"],["Vie 16","20:00","Promo fin de semana","#1F46C4","Canal Foro CX","💡"]];
+$("rows").innerHTML=ROWS.map((r,i)=>`<div class="row" id="rw${i}"><span style="font-weight:700">${r[0]}</span><span style="color:var(--muted)">${r[1]}</span><span><div style="font-weight:700">${r[2]}</div><div style="margin-top:4px"><span class="net">Facebook</span>${i%2?'<span class="net">TikTok</span>':'<span class="net">YouTube</span>'}</div></span><span class="m"><i class="dot" style="background:${r[3]}"></i>${r[4]}</span><span style="font-size:30px">${r[5]}</span></div>`).join("");
+let cal=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(d=>`<div class="dw">${d}</div>`).join("");
+const EVS={2:[["#1F46C4","Estreno"]],6:[["#C8321F","Cápsula"]],9:[["#1F46C4","Entrevista"],["#C8321F","Nota"]],12:[["#1F46C4","Foro del Lunes"]],13:[["#C8321F","Cápsula"]],16:[["#1F46C4","Promo"]],19:[["#1F46C4","Foro del Lunes"]],21:[["#C8321F","Resumen"]],23:[["#1F46C4","En vivo"]],26:[["#1F46C4","Foro del Lunes"]],28:[["#C8321F","Especial"]]};
+for(let i=0;i<35;i++){const d=i-2;const ok=d>=1&&d<=31;cal+=`<div class="day ${d===12?"today":""}">${ok?d:""}${(EVS[d]||[]).map((e,k)=>`<div class="ev" id="ev${d}_${k}" style="background:${e[0]}">${e[1]}</div>`).join("")}</div>`}
+$("cal").innerHTML=cal;
+const DATES=[["Lun","12"],["Lun","19"],["Lun","26"],["Lun","2"]];
+$("dates").innerHTML=DATES.map((d,i)=>`<div class="abs date" id="dt${i}" style="left:${1000+i*180}px;top:520px"><small>${d[0]}</small><b>${d[1]}</b></div>`).join("");
+const STEPS=[["💡","Idea"],["✏️","Borrador"],["⏳","Revisión"],["📅","Programado"],["✅","Publicado"]];
+$("steps").innerHTML=STEPS.map((s,i)=>`<div class="stp" id="sp${i}" style="left:${230+i*330}px"><div class="o" id="so${i}">${s[0]}</div><div class="t">${s[1]}</div></div>`).join("");
+const USERS=[["JA","#062B62","Jorge Acuña","Titular · todos los permisos",[["Todas las marcas","br"]],[],"TITULAR","#062B62"],
+  ["MT","#FE6B02","Mariana Torres","Colaboradora",[["Canal Foro CX","br"]],["Registrar","Cambiar estado","Exportar"],"ACTIVO","#16794A"],
+  ["RH","#1F46C4","Ricardo Hernández","Colaborador",[["TV Digital Internet","br"]],["Registrar","Cambiar estado"],"INVITADO","#A86200"]];
+$("users").innerHTML=USERS.map((u,i)=>`<div class="abs card usr" id="us${i}" style="left:900px;top:${190+i*230}px"><div class="av" style="background:${u[1]}">${u[0]}</div><div><h5>${u[2]}</h5><div class="r">${u[3]}</div><div>${u[4].map(t=>`<span class="tg ${t[1]}">${t[0]}</span>`).join("")}${u[5].map((t,k)=>`<span class="tg on" id="pm${i}_${k}">✓ ${t}</span>`).join("")}</div></div><span class="badge" style="color:${u[7]};border:2px solid ${u[7]}">${u[6]}</span></div>`).join("");
+
+// posiciones caóticas de las redes (S2)
+const CH=[[1000,180],[1560,240],[1180,330],[1620,520],[960,560],[1420,690],[1100,800],[1580,860]];
+
+function render(t){
+  // escenas: aparición/salida
+  SC.forEach(([id,a,b])=>{const el=$(id);let o=0;if(t>=a&&t<b){o=Math.min(P(t,a,a+.45),1-P(t,b-.4,b));if(id==="s1"&&t<.5)o=1;if(id==="s9")o=P(t,a,a+.45)}el.style.opacity=o;el.style.display=o>0?"block":"none"});
+
+  // S1 · logo
+  if(t<4.6){
+    const m=P(t,.1,1.3); st($("l-mark"),O(m),0,(1-O(m))*40,.6+.4*B(m),(1-O(m))*-120);
+    const s=P(t,.9,1.6); st($("l-scad"),O(s),(1-O(s))*-120,0);
+    const r=P(t,1.2,1.95); st($("l-redes"),O(r),(1-O(r))*120,0);
+    const l=P(t,1.8,2.6); st($("l-lema"),O(l),0,(1-O(l))*24);
+    const h=P(t,2.5,3.2); st($("l-hub"),O(h)*.9);
+  }
+  // S2 · redes regadas → un panel
+  if(t>=4.6&&t<9.4){
+    const conv=E(P(t,7.4,8.4));
+    NET.forEach((n,i)=>{const el=$("ch"+i),[x,y]=CH[i];
+      const ap=O(P(t,4.9+i*.12,5.5+i*.12));
+      const wob=Math.sin(t*1.6+i*1.3)*14, wob2=Math.cos(t*1.3+i)*10;
+      const tx=x+wob+(1390-x-130)*conv, ty=y+wob2+(540-y-38)*conv;
+      el.style.left=tx+"px";el.style.top=ty+"px";el.style.opacity=ap*(1-conv);el.style.transform=`scale(${(.7+.3*ap)*(1-.5*conv)}) rotate(${(1-conv)*Math.sin(i)*8}deg)`});
+    const one=P(t,8.1,8.8); st($("s2one"),O(one),0,0,.8+.2*B(one));
+  }
+  // S3 · panel
+  if(t>=9.4&&t<14.6){
+    const p=O(P(t,9.5,10.4)); st($("pan"),p,(1-p)*80,0);
+    [[3,"c1"],[12,"c2"],[2,"c3"],[0,"c4"]].forEach(([v,id],i)=>{$(id).textContent=Math.round(v*O(P(t,10.2+i*.15,11.4+i*.15)))});
+    ROWS.forEach((r,i)=>{const q=O(P(t,10.8+i*.28,11.4+i*.28)); st($("rw"+i),q,(1-q)*60,0)});
+  }
+  // S4 · calendario
+  if(t>=14.6&&t<19){
+    Object.keys(EVS).forEach((d,j)=>EVS[d].forEach((e,k)=>{const q=P(t,15.2+j*.17+k*.08,15.6+j*.17+k*.08); st($(`ev${d}_${k}`),O(q),0,0,.6+.4*B(q))}));
+  }
+  // S5 · series
+  if(t>=19&&t<23.2){
+    const c=O(P(t,19.2,19.9)); st($("s5card"),c,0,(1-c)*-30);
+    DATES.forEach((d,i)=>{const q=P(t,20.1+i*.35,20.7+i*.35);const e=B(q);
+      const el=$("dt"+i); el.style.opacity=O(q); el.style.transform=`translate(${(1-O(q))*(1310-(1000+i*180)-75)}px,${(1-O(q))*-260}px) scale(${.4+.6*e})`});
+  }
+  // S6 · estados
+  if(t>=23.2&&t<27.6){
+    const k=P(t,23.6,26.2)*4; // 0..4
+    $("lanefill").style.width=(Math.min(k,4)/4*1320)+"px";
+    STEPS.forEach((s,i)=>{const on=k>=i-0.02;const o=$("so"+i);o.className="o"+(on?(i===4?" ok":" on"):"");
+      const pop=P(t,23.6+i*.65,24+i*.65); o.style.transform=`scale(${on?1+.12*Math.sin(Math.PI*pop):1})`});
+    const ok=O(P(t,26.3,26.9)); st($("s6ok"),ok,0,(1-ok)*20);
+  }
+  // S7 · colaboradores
+  if(t>=27.6&&t<31.6){
+    USERS.forEach((u,i)=>{const q=O(P(t,27.9+i*.35,28.6+i*.35)); st($("us"+i),q,(1-q)*90,0);
+      u[5].forEach((p,k)=>{const z=P(t,29.2+i*.3+k*.18,29.5+i*.3+k*.18); st($(`pm${i}_${k}`),O(z),0,0,.7+.3*B(z))})});
+  }
+  // S8 · app + pdf
+  if(t>=31.6&&t<35.6){
+    const a=O(P(t,31.8,32.6)); st($("pdf"),a,0,(1-a)*60,1,(1-a)*-6);
+    const b=O(P(t,32.2,33.1)); st($("phone"),b,(1-b)*120,0,1,(1-b)*6);
+  }
+  // S9 · cierre
+  if(t>=35.6){
+    const l=O(P(t,35.7,36.6)); st($("f-logo"),l,0,0,.85+.15*B(P(t,35.7,36.6)));
+    const a=O(P(t,36.4,37.1)); st($("p1"),a,0,(1-a)*40);
+    const b=O(P(t,36.7,37.4)); st($("p2"),b,0,(1-b)*40);
+    const u=P(t,37.3,38); st($("f-url"),O(u),0,0,.7+.3*B(u));
+    const h=O(P(t,37.9,38.6)); st($("f-hub"),h*.9);
+  }
+}
+window.render=render; window.DUR=DUR;
+render(0);
+</script>
+</body></html>
