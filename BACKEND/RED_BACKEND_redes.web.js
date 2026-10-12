@@ -4,7 +4,7 @@
    SITIO:     scad.mx
    ARCHIVO:   RED_BACKEND_redes.web.js
               En Wix se instala como:  backend/redes.web.js
-   VERSIÓN:   v2.1 · 2026-10-11
+   VERSIÓN:   v2.2 · 2026-10-11
    MODELO:    Multiempresa gestionado desde Panel SYS + modelo comercial
    DEPENDE:   SCaD_EO, SCaD_USR (transversales, esquema real de SYS)
               RedesCanales, RedesPublicaciones (campo eoId)
@@ -24,6 +24,7 @@
      · Sesión única por usuario: la nueva se rechaza mientras la otra tenga
        actividad en los últimos 30 minutos.
      · Límite de marcas por EO: 3 (SCaD_EO.limiteMarcas lo puede ajustar).
+   CAMBIOS v2.2: anotaciones de tipo (JSDoc) para el verificador del editor.
    CAMBIOS v2.1: los paquetes de planes se cargan bajo demanda; si no están
               instalados, el módulo carga igual (EO de cortesía funcionan y las
               EO comerciales se ven suspendidas hasta instalarlos).
@@ -70,6 +71,8 @@ const LIMITE = 1000;
 const MAX_LOTE = 100;
 const OPT = { suppressAuth: true };
 let ordenesElevadas = null;
+/** @param {any} opciones
+ *  @returns {Promise<any>} */
 async function listarOrdenes(opciones) {
   if (!ordenesElevadas) {
     const [{ orders }, { auth }] = await Promise.all([import('@wix/pricing-plans'), import('@wix/essentials')]);
@@ -350,6 +353,9 @@ export const quitarUsuario = webMethod(Permissions.SiteMember, async (req, usrId
 
 // Estados: ok · elegir · registro · comprar_titular · comprar_colaborador ·
 //          sin_invitacion · suspendida · sesion_activa
+/** Contexto del usuario (forma variable según el estado).
+ *  @param {any} req
+ *  @returns {Promise<any>} */
 async function resolver(req) {
   const r = req || {};
   const miembro = await miembroActual();
@@ -450,6 +456,8 @@ async function resolver(req) {
 }
 
 // Contexto exigido para operar con datos
+/** @param {any} req
+ *  @returns {Promise<any>} */
 async function operativo(req) {
   const r = req || {};
   if (!texto(r.eo)) throw falla('CONTEXTO', 'No hay una empresa seleccionada.');
@@ -465,6 +473,7 @@ async function operativo(req) {
 }
 
 // Lo que viaja al panel (sin campos internos)
+/** @param {any} ctx */
 function publico(ctx) {
   const o = {};
   Object.keys(ctx).forEach(k => { if (!k.startsWith('_')) o[k] = ctx[k]; });
@@ -530,6 +539,7 @@ async function reclamarSesion(memberId, sesionId) {
 }
 
 /* ---------- permisos ---------- */
+/** @param {any} ctx */
 function exigir(ctx, permiso) {
   if (!ctx.permisos || !ctx.permisos[permiso]) {
     const t = { editar: 'editar publicaciones', estado: 'cambiar el estado', eliminar: 'eliminar publicaciones', marcas: 'gestionar marcas', exportar: 'exportar reportes' };
@@ -537,12 +547,14 @@ function exigir(ctx, permiso) {
   }
 }
 
+/** @param {any} ctx */
 function exigirMarca(ctx, marcaId) {
   if (ctx.marcasPermitidas && !ctx.marcasPermitidas.includes(texto(marcaId))) {
     throw falla('SIN_PERMISO', 'No tienes acceso a esa marca.');
   }
 }
 
+/** @param {any} ctx */
 function exigirTitular(ctx) {
   if (!ctx.titular) throw falla('SIN_PERMISO', 'Solo el titular de la empresa puede gestionar colaboradores.');
 }
@@ -582,6 +594,7 @@ async function usuariosDeEO(eo) {
   return (await wixData.query(CFG.COL.usr).eq('app', CFG.APP).eq('enteOperador', eo.codigoContexto).limit(LIMITE).find(OPT)).items;
 }
 
+/** @param {any} ctx */
 async function usuarioColaborador(ctx, usrId) {
   const u = await wixData.get(CFG.COL.usr, texto(usrId), OPT).catch(() => null);
   if (!u || u.app !== CFG.APP || u.enteOperador !== ctx._eo.codigoContexto) throw falla('NO_ENCONTRADO', 'El colaborador no pertenece a tu empresa.');
@@ -633,7 +646,7 @@ async function ejecutar(fn) {
 }
 
 function falla(code, message) {
-  const e = new Error(message);
+  const e = /** @type {any} */ (new Error(message));
   e.codigoRedes = code;
   return e;
 }
