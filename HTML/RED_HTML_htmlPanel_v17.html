@@ -9,10 +9,18 @@
    PROYECTO:  Panel de Publicaciones en Redes
    SITIO:     scad.mx · Página: /gestion-redes
    ELEMENTO:  #seccPanel › #htmlPanel
-   ARCHIVO:   RED_HTML_htmlPanel_v16.html
-   VERSIÓN:   v16 · 2026-10-11
-   DEPENDE:   RED_VELO_gestion-redes_v3.js (sin cambios)
+   ARCHIVO:   RED_HTML_htmlPanel_v17.html
+   VERSIÓN:   v17 · 2026-10-11
+   DEPENDE:   RED_VELO_gestion-redes_v4.js · backend/redes.web.js
               jsPDF 2.5.1 + AutoTable 3.8.2 (cdnjs, se cargan al exportar)
+   CAMBIOS v17: multiempresa (APP + EO). Recibe el contexto de la página
+              (mensaje "context"): empresa activa en el encabezado, selector
+              si el usuario tiene varias, pantalla para elegir empresa,
+              permisos por rol (ADM gestiona marcas; asistencia admSYS en
+              solo lectura). Al cambiar de empresa se reinicia todo el
+              estado (datos, filtros, ventanas y operaciones pendientes).
+              Cada operación viaja con su empresa; la validación la hace
+              el BACKEND. Empresa en el encabezado del PDF y de la impresión.
    CAMBIOS v16: ventana "Exportar reporte" con título y descripción
               opcional; PDF con logotipo SCaD Redes en el encabezado e
               identidad de la marca cuando se filtra una sola marca.
@@ -401,6 +409,21 @@ body{overflow:hidden}
   #print a{color:#1F46C4}
   @page{size:landscape;margin:12mm}
 }
+/* v17 · multiempresa */
+.eobox{display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);max-width:320px}
+.eobox img{height:22px;width:auto;max-width:60px;object-fit:contain;flex:none}
+.eobox .eon{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eobox select{border:0;background:transparent;font-weight:600;max-width:240px;padding:2px 0;cursor:pointer}
+.eobox .rol{font-family:var(--f-mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px;flex:none}
+.eobox .rol.asis{color:var(--warn);border-color:var(--warn)}
+.picker{max-width:520px;margin:32px auto;display:grid;gap:10px}
+.picker h2{font-size:24px}
+.pick{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);text-align:left;width:100%}
+.pick:hover{border-color:var(--accent)}
+.pick img{height:32px;width:auto;max-width:80px;object-fit:contain}
+.pick .grow{flex:1;font-weight:600}
+body.ro #newPost, body.ro [data-del], body.ro [data-pub], body.ro [data-setst], body.ro [data-new], body.ro [data-dup],
+body.nomarcas [data-newmarca], body.nomarcas [data-editmarca], body.nomarcas [data-delmarca]{display:none!important}
 </style>
 </head>
 <body>
@@ -416,6 +439,7 @@ body{overflow:hidden}
       </div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="eobox" id="eoBox" hidden></div>
       <span class="clock" id="clock">--:--</span>
       <button class="btn ghost sm" id="reload" type="button">Actualizar</button>
       <button class="btn primary" id="newPost" type="button">+ Nueva publicación</button>
@@ -483,7 +507,7 @@ const TYPES = ["Post","Video","Reel / Short","Historia","En vivo","Carrusel","Cl
 const PALETTE = ["#1F46C4","#C8321F","#16794A","#A86200","#6B5BB8","#0E7C86","#B0337A","#4A5568"];
 const PALETTE_N = {"#1F46C4":"Azul","#C8321F":"Rojo","#16794A":"Verde","#A86200":"Ámbar","#6B5BB8":"Violeta","#0E7C86":"Turquesa","#B0337A":"Magenta","#4A5568":"Grafito"};
 const NET_AB = {facebook:"FB",instagram:"IG",youtube:"YT",tiktok:"TT",x:"X",threads:"TH",linkedin:"IN",whatsapp:"WA"};
-const VERSION = "v16";
+const VERSION = "v17";
 const VERSION_FECHA = "11 oct 2026";
 const PERIODOS = [
   {k:"desdehoy",n:"Desde hoy"},{k:"hoy",n:"Hoy"},{k:"semana",n:"Esta semana"},{k:"mes",n:"Este mes"},
@@ -512,9 +536,11 @@ const IC = {
 };
 
 /* ---------- estado ---------- */
+const F_DEF = () => ({q:"", periodo:"desdehoy", desde:"", hasta:"", marca:"all", red:"all", estado:"all", formato:"all", resp:"all"});
 const S = {
   marcas:[], pubs:[], tab:"listado", loaded:false, month:null,
-  f:{q:"", periodo:"desdehoy", desde:"", hasta:"", marca:"all", red:"all", estado:"all", formato:"all", resp:"all"},
+  ctx:null,      // {eo, nombre, logo, eos, rol, asistencia, permisos} · eo = null → elegir empresa
+  f:F_DEF(),
   sort:{key:"fecha", dir:1}, cols:[]
 };
 
@@ -578,6 +604,11 @@ let seq = 0;
 function send(msg){ window.parent.postMessage(msg, "*"); }
 function request(msg){
   const reqId = "r" + (++seq) + "-" + Date.now();
+  const tipo = msg.col === "marcas" ? "marcas" : "publicaciones";
+  if (!S.ctx || !S.ctx.eo) return Promise.reject({code:"CONTEXTO", message:"Elige una empresa."});
+  if (S.ctx.asistencia) return Promise.reject({code:"SOLO_LECTURA", message:"La cuenta de asistencia es de solo lectura."});
+  if (!puede(tipo)) return Promise.reject({code:"SIN_PERMISO", message: tipo==="marcas" ? "Solo un administrador de la empresa puede gestionar marcas." : "Tu rol no permite registrar publicaciones."});
+  msg = {...msg, eo:S.ctx.eo};
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => { pending.delete(reqId); reject({message:"Sin respuesta de la página"}); }, 30000);
     pending.set(reqId, {resolve, reject, timer});
@@ -586,17 +617,75 @@ function request(msg){
 }
 window.addEventListener("message", e => {
   const m = e.data; if (!m || typeof m !== "object") return;
-  if (m.type === "data"){
+  if (m.type === "context"){
+    aplicarContexto(m);
+  } else if (m.type === "sinacceso"){
+    S.ctx = null; reiniciarEO(); S.loaded = true; S.sinAcceso = true;
+    setBanner(m.message || "Tu cuenta no tiene acceso a SCaD Redes."); pintarEO(); render();
+  } else if (m.type === "data"){
+    if (!S.ctx || m.eo !== S.ctx.eo) return;   // datos de otra empresa: se descartan
     S.marcas = m.marcas || [];
     S.pubs = (m.publicaciones || []).map(normPub); S.loaded = true;
     setBanner(""); render();
   } else if (m.type === "noauth"){
-    S.loaded = true; setBanner("Inicia sesión en el sitio para ver y registrar publicaciones."); render();
+    S.ctx = null; reiniciarEO(); S.loaded = true; S.sinAcceso = true;
+    setBanner("Inicia sesión en el sitio para ver y registrar publicaciones."); pintarEO(); render();
   } else if (m.type === "result" && pending.has(m.reqId)){
     const p = pending.get(m.reqId); pending.delete(m.reqId); clearTimeout(p.timer);
     m.ok ? p.resolve(m.item) : p.reject(m.error || {});
   }
 });
+/* ---------- contexto multiempresa ---------- */
+const puede = tipo => !!(S.ctx && S.ctx.eo && !S.ctx.asistencia && S.ctx.permisos && S.ctx.permisos[tipo]);
+const safeLogo = u => safeImg(u) || (/^https:\/\//i.test(u||"") ? u : "");
+function aplicarContexto(m){
+  const eo = m.activa ? m.activa._id : null;
+  const cambio = !S.ctx || S.ctx.eo !== eo;
+  S.ctx = { eo, nombre: m.activa?.nombre || "", logo: m.activa?.logo || "", eos: m.eos || [],
+    rol: m.rol || "", asistencia: !!m.asistencia, permisos: m.permisos || {} };
+  S.sinAcceso = false;
+  if (cambio) reiniciarEO();
+  if (!eo) S.loaded = true;   // pantalla para elegir empresa
+  document.body.classList.toggle("ro", !puede("publicaciones"));
+  document.body.classList.toggle("nomarcas", !puede("marcas"));
+  setBanner(m.aviso || (S.ctx.asistencia ? "Asistencia SYS: vista de solo lectura. Para crear contenido se requiere alta como usuario de esta empresa." : ""));
+  pintarEO(); render();
+}
+// Sustituye el contexto: nada de la empresa anterior se reutiliza
+function reiniciarEO(){
+  S.marcas = []; S.pubs = []; S.loaded = false; S.f = F_DEF(); S.tab = "listado";
+  const d = new Date(); S.month = new Date(d.getFullYear(), d.getMonth(), 1);
+  closeModal(); $("#print").innerHTML = "";
+  document.querySelectorAll(".menu .pop").forEach(pp => pp.hidden = true);
+  pending.forEach(p => { clearTimeout(p.timer); p.reject({code:"CONTEXTO", message:"Cambió la empresa activa."}); });
+  pending.clear();
+}
+function pintarEO(){
+  const box = $("#eoBox"), c = S.ctx;
+  if (!c || !c.eo){ box.hidden = true; box.innerHTML = ""; return; }
+  const lg = safeLogo(c.logo);
+  const rol = c.asistencia ? `<span class="rol asis" title="Asistencia SYS">SYS</span>` : (c.rol ? `<span class="rol">${esc(c.rol)}</span>` : "");
+  const nombre = c.eos.length > 1 && !c.asistencia
+    ? `<select id="eoSel" aria-label="Empresa">${c.eos.map(e => `<option value="${esc(e._id)}" ${e._id===c.eo?"selected":""}>${esc(e.nombre)}</option>`).join("")}</select>`
+    : `<span class="eon" title="${esc(c.nombre)}">${esc(c.nombre)}</span>`;
+  box.innerHTML = `${lg?`<img src="${esc(lg)}" alt="">`:""}${nombre}${rol}`;
+  box.hidden = false;
+}
+function cambiarEO(id){
+  if (!id || !S.ctx || id === S.ctx.eo) return;
+  reiniciarEO();
+  S.ctx = {...S.ctx, eo:id, nombre:(S.ctx.eos.find(e=>e._id===id)||{}).nombre||"", logo:(S.ctx.eos.find(e=>e._id===id)||{}).logo||""};
+  pintarEO(); render();
+  send({type:"switchEO", eoId:id});
+}
+function viewPicker(){
+  if (S.sinAcceso) return `<div class="empty"><strong>Sin acceso</strong>${esc($("#banner").textContent||"")}</div>`;
+  const eos = S.ctx?.eos || [];
+  return `<div class="picker"><h2>Elige una empresa</h2><p class="muted" style="margin:0">Tu cuenta tiene acceso a SCaD Redes en varias empresas.</p>
+    ${eos.map(e => { const lg = safeLogo(e.logo); return `<button class="pick" data-pickeo="${esc(e._id)}" type="button">${lg?`<img src="${esc(lg)}" alt="">`:""}<span class="grow">${esc(e.nombre)}</span><span class="muted mono">${esc(e.rol||"")}</span></button>`; }).join("")}</div>`;
+}
+const eoNombre = () => S.ctx?.nombre || "";
+
 function normPub(p){
   const o = {...p};
   if (p.fechaProgramada){ const d = new Date(p.fechaProgramada); o._fecha = ymd(d); o._hora = hm(d); }
@@ -605,9 +694,10 @@ function normPub(p){
   return o;
 }
 function errMsg(err, accion){
+  if (err && ["SIN_PERMISO","SOLO_LECTURA","CONTEXTO","NO_ENCONTRADO","EN_USO","DATOS","SIN_ACCESO"].includes(err.code) && err.message) return err.message;
   const t = String((err && (err.message || err.code)) || "");
   if (/permission|WDE0027|not authorized|permiso/i.test(t))
-    return accion==="eliminar" ? "Solo un administrador del sitio puede eliminar. Cambia el estado o pide apoyo al administrador." : "No tienes permiso para esta acción.";
+    return accion==="eliminar" ? "Tu rol no permite eliminar. Cambia el estado o pide apoyo al administrador de la empresa." : "No tienes permiso para esta acción.";
   return "No se pudo " + accion + ". Intenta de nuevo.";
 }
 
@@ -866,6 +956,14 @@ function renderSbar(){
   bar.innerHTML = item("all","📋","Todos",base.length) + ESTADOS_VISTA.map(s => item(s.k, s.ic, s.n, cnt(s.k))).join("");
 }
 function render(){
+  if (!S.ctx || !S.ctx.eo){
+    if (S.loaded){
+      ["#filters","#stats","#fbar","#sbar"].forEach(q => { const el = $(q); if (el) el.innerHTML = ""; });
+      document.querySelector("nav.tabs").hidden = true; $("#newPost").hidden = true;
+      $("#view").innerHTML = viewPicker(); return;
+    }
+  }
+  document.querySelector("nav.tabs").hidden = false; $("#newPost").hidden = false;
   renderFilters(); renderStats(); renderFbar(); renderSbar(); renderTools();
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab===S.tab));
   $("#view").innerHTML = ({listado:viewListado,calendario:viewCalendario,tablero:viewTablero,marcas:viewMarcas})[S.tab]();
@@ -1231,6 +1329,7 @@ async function copyText(p){
 }
 
 function newPost(fecha){
+  if (!puede("publicaciones")){ toast(S.ctx?.asistencia ? "La asistencia SYS es de solo lectura" : "Tu rol no permite registrar publicaciones"); return; }
   if (!S.marcas.length){ toast("Primero crea una marca"); S.tab="marcas"; render(); return; }
   const activas = S.marcas.filter(m => m.activo!==false);
   const canal = S.f.marca!=="all" ? S.f.marca : (activas[0]||S.marcas[0])._id;
@@ -1332,7 +1431,7 @@ async function exportPDF(){
     const tLines = doc.splitTextToSize(EXP.titulo, PW - x - M - rightW - 6);
     doc.text(tLines, x, y + 7);
     doc.setFont(undefined, "normal"); doc.setFontSize(9); doc.setTextColor(110);
-    doc.text(`${filas.length} ${filas.length===1?"publicación":"publicaciones"} · Emitido: ${emitido}`, x, y + 7 + tLines.length*6.2 + 1);
+    doc.text(`${eoNombre() ? eoNombre() + " · " : ""}${filas.length} ${filas.length===1?"publicación":"publicaciones"} · Emitido: ${emitido}`, x, y + 7 + tLines.length*6.2 + 1);
     y += 20;
     doc.setDrawColor(20,25,34); doc.setLineWidth(0.5); doc.line(M, y, PW - M, y); y += 6;
     // Descripción opcional
@@ -1384,7 +1483,7 @@ function exportPrint(){
   const mf = S.f.marca!=="all" ? marcaOf(S.f.marca) : null, lg = appLogo();
   $("#print").innerHTML = `<div class="ph">
       ${lg?`<img class="plogo" src="${lg}" alt="SCaD Redes">`:""}
-      <div class="pt"><h1>${esc(EXP.titulo)}</h1><div class="meta">${filas.length} ${filas.length===1?"publicación":"publicaciones"} · Emitido: ${esc(emitido)}</div></div>
+      <div class="pt"><h1>${esc(EXP.titulo)}</h1><div class="meta">${eoNombre() ? esc(eoNombre()) + " · " : ""}${filas.length} ${filas.length===1?"publicación":"publicaciones"} · Emitido: ${esc(emitido)}</div></div>
       ${mf?`<div class="pm">${safeImg(mf.logo)?`<img src="${safeImg(mf.logo)}" alt="">`:""}<span>${esc(mf.nombre)}</span></div>`:""}
     </div>
     ${EXP.desc?`<p class="pdesc">${esc(EXP.desc)}</p>`:""}
@@ -1410,6 +1509,7 @@ document.addEventListener("click", async e => {
   const d = t.dataset;
   if (t.classList.contains("tab")){ S.tab=d.tab; render(); return; }
   if (d.close!==undefined){ closeModal(); return; }
+  if (d.pickeo){ cambiarEO(d.pickeo); return; }
   if (d.fst!==undefined){ S.f.estado = d.fst; render(); return; }
   if (d.fmarca!==undefined){ S.f.marca=d.fmarca; render(); return; }
   if (d.fred!==undefined){ S.f.red=d.fred; render(); return; }
@@ -1420,7 +1520,7 @@ document.addEventListener("click", async e => {
     S.tab = "listado"; render(); return;
   }
   if (t.id==="f-qclear"){ S.f.q = ""; render(); const q=$("#f-q"); q && q.focus(); return; }
-  if (t.id==="f-clear"){ S.f = {q:"", periodo:"desdehoy", desde:"", hasta:"", marca:"all", red:"all", estado:"all", formato:"all", resp:"all"}; render(); return; }
+  if (t.id==="f-clear"){ S.f = F_DEF(); render(); return; }
   if (t.id==="expBtn"){ exportDialog(); return; }
   if (t.id==="colBtn"){
     const pp = $("#colPop");
@@ -1465,6 +1565,7 @@ document.addEventListener("change", e => {
     S.cols = COLS.map(c => c.k).filter(x => S.cols.includes(x));
     saveCols(); $("#view").innerHTML = viewListado(); return;
   }
+  if (e.target.id === "eoSel"){ cambiarEO(e.target.value); return; }
   const id = e.target.id; if (!id || !id.startsWith("f-") || id==="f-q") return;
   const map = {"f-periodo":"periodo","f-desde":"desde","f-hasta":"hasta","f-marca":"marca","f-red":"red","f-estado":"estado","f-formato":"formato","f-resp":"resp"};
   if (map[id]){ S.f[map[id]] = e.target.value; render(); }
@@ -1486,7 +1587,7 @@ $("#ver").textContent = `${VERSION} · ${VERSION_FECHA}`;
 render();
 send({type:"ready"});
 let tries = 0;
-const retry = setInterval(() => { if (S.loaded || ++tries > 5) return clearInterval(retry); send({type:"ready"}); }, 1500);
+const retry = setInterval(() => { if (S.loaded || S.ctx || S.sinAcceso || ++tries > 5) return clearInterval(retry); send({type:"ready"}); }, 1500);
 })();
 </script>
 </body>

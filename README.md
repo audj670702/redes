@@ -8,7 +8,19 @@ APP de la familia SCaD, integrada al **modelo multiempresa gestionado desde Pane
 | Etapa | Estado |
 |---|---|
 | Prototipo funcional en Wix (scad.mx `/gestion-redes`, `#htmlPanel`) | Completo |
-| Integración al modelo multiempresa (APP + EO) | En diseño |
+| Integración al modelo multiempresa (APP + EO) | Desarrollada · pendiente de instalar y probar en el sitio |
+
+## Versión vigente
+
+| Tipo | Archivo | Se instala en Wix como |
+|---|---|---|
+| BACKEND | `BACKEND/RED_BACKEND_redes.web.js` v1 | `backend/redes.web.js` |
+| BACKEND | `BACKEND/RED_BACKEND_redes-migracion.web.js` v1 (uso único) | `backend/redes-migracion.web.js` |
+| VELO | `VELO/RED_VELO_gestion-redes_v4.js` | código de la página `/gestion-redes` |
+| HTML | `HTML/RED_HTML_htmlPanel_v17.html` | componente `#htmlPanel` |
+
+Instalación y verificación: [`docs/Instalacion_Multiempresa_v1.md`](docs/Instalacion_Multiempresa_v1.md).
+La versión monoempresa anterior (HTML v16, VELO v3) está en el historial, commit *Versión base monoempresa*.
 
 ## Estructura del repositorio
 
