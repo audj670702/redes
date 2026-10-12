@@ -15,7 +15,7 @@ APP de la familia SCaD, integrada al **modelo multiempresa gestionado desde Pane
 | Tipo | Archivo | Se instala en Wix como |
 |---|---|---|
 | BACKEND | `BACKEND/RED_BACKEND_redes.web.js` v1 | `backend/redes.web.js` |
-| BACKEND | `BACKEND/RED_BACKEND_redes-migracion.web.js` v1 (uso único) | `backend/redes-migracion.web.js` |
+| BACKEND · temporal | `BACKEND/migraciones/RED_BACKEND_redes-migracion.web.js` v1 | `backend/redes-migracion.web.js` (se elimina tras migrar) |
 | VELO | `VELO/RED_VELO_gestion-redes_v4.js` | código de la página `/gestion-redes` |
 | HTML | `HTML/RED_HTML_htmlPanel_v17.html` | componente `#htmlPanel` |
 
@@ -31,6 +31,7 @@ Los códigos se identifican por tipo:
 | `HTML/` | HTML | Panel embebido en el componente `#htmlPanel` |
 | `VELO/` | VELO | Código de la página `/gestion-redes` |
 | `BACKEND/` | BACKEND | Métodos web (`redes.web.js`) con validación de contexto |
+| `BACKEND/migraciones/` | BACKEND | Scripts de uso único; no forman parte de la instalación permanente |
 | `docs/` | — | Documentación técnica |
 
 ## Modelo multiempresa (resumen)

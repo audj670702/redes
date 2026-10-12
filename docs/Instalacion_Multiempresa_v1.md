@@ -25,10 +25,11 @@ Un rol adicional definido por SYS que no esté en `CFG.ROLES` entra en **solo le
 ## 2. Orden de instalación
 
 1. **Colecciones de la APP**: agregar el campo de texto `eoId` a `RedesCanales` y `RedesPublicaciones`.
-2. **BACKEND**: crear `backend/redes.web.js` con el contenido de `RED_BACKEND_redes.web.js`, y `backend/redes-migracion.web.js` con `RED_BACKEND_redes-migracion.web.js`.
+2. **BACKEND**: crear `backend/redes.web.js` con el contenido de `RED_BACKEND_redes.web.js`, y, de forma temporal, `backend/redes-migracion.web.js` con `BACKEND/migraciones/RED_BACKEND_redes-migracion.web.js`.
 3. **Migración**: en el editor, probar la función `migrarEoId`:
    1. `migrarEoId("<_id de la EO>", true)`: simulación; revisa los conteos.
    2. `migrarEoId("<_id de la EO>", false)`: asigna `eoId` a los registros sin él.
+   3. Verifica el panel y repite la simulación: si reporta 0 registros sin `eoId` en ambas colecciones, **elimina `backend/redes-migracion.web.js` del sitio**. El archivo se conserva en el repositorio como registro.
 4. **Pertenencias**: dar de alta en SCaD_USR, con `app = REDES`, a los usuarios actuales del panel (con su EO, rol y `accesoDirecto = true` si deben entrar sin código).
 5. **VELO**: reemplazar el código de la página `/gestion-redes` por `RED_VELO_gestion-redes_v4.js`.
 6. **HTML**: reemplazar el contenido de `#htmlPanel` por `RED_HTML_htmlPanel_v17.html`.
