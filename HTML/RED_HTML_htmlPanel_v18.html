@@ -9,10 +9,17 @@
    PROYECTO:  Panel de Publicaciones en Redes
    SITIO:     scad.mx · Página: /gestion-redes
    ELEMENTO:  #seccPanel › #htmlPanel
-   ARCHIVO:   RED_HTML_htmlPanel_v17.html
-   VERSIÓN:   v17 · 2026-10-11
-   DEPENDE:   RED_VELO_gestion-redes_v4.js · backend/redes.web.js
+   ARCHIVO:   RED_HTML_htmlPanel_v18.html
+   VERSIÓN:   v18 · 2026-10-11
+   DEPENDE:   RED_VELO_gestion-redes_v5.js · backend/redes.web.js v2
               jsPDF 2.5.1 + AutoTable 3.8.2 (cdnjs, se cargan al exportar)
+   CAMBIOS v18: modelo comercial. Identidad de la EO en el encabezado;
+              usuario en sesión con "Cerrar sesión"; sesión única por
+              dispositivo (id local + aviso de sesión activa); pantallas de
+              registro de empresa, compra de PLAN REDES / COLABORADOR REDES,
+              suscripción suspendida y sin invitación; pestaña Usuarios
+              (solo titular) para invitar colaboradores y fijar sus permisos
+              por función y por marca; límite de marcas por empresa.
    CAMBIOS v17: multiempresa (APP + EO). Recibe el contexto de la página
               (mensaje "context"): empresa activa en el encabezado, selector
               si el usuario tiene varias, pantalla para elegir empresa,
@@ -422,8 +429,33 @@ body{overflow:hidden}
 .pick:hover{border-color:var(--accent)}
 .pick img{height:32px;width:auto;max-width:80px;object-fit:contain}
 .pick .grow{flex:1;font-weight:600}
-body.ro #newPost, body.ro [data-del], body.ro [data-pub], body.ro [data-setst], body.ro [data-new], body.ro [data-dup],
-body.nomarcas [data-newmarca], body.nomarcas [data-editmarca], body.nomarcas [data-delmarca]{display:none!important}
+/* v18 · permisos del colaborador */
+body.no-editar #newPost, body.no-editar [data-new], body.no-editar [data-dup], body.no-editar #pf-dup, body.no-editar #pf-save,
+body.no-estado [data-pub], body.no-estado [data-setst],
+body.no-eliminar [data-del], body.no-eliminar #pf-del,
+body.no-marcas [data-newmarca], body.no-marcas [data-editmarca], body.no-marcas [data-delmarca],
+body.marcas-limitadas [data-newmarca], body.no-exportar #expBtn{display:none!important}
+body.no-editar #pf input, body.no-editar #pf select, body.no-editar #pf textarea, body.no-editar #pf .mcal{pointer-events:none;opacity:.8}
+/* v18 · usuario, pantallas de acceso y usuarios */
+.ubox{display:flex;align-items:center;gap:8px;font-size:13px}
+.ubox .un{font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ubox .ur{font-family:var(--f-mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+.gate{max-width:560px;margin:28px auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:grid;gap:12px}
+.gate h2{font-size:26px}
+.gate p{margin:0}
+.gate .price{font-family:var(--f-display);font-size:30px;font-weight:700}
+.gate .price small{font-size:14px;color:var(--muted);font-weight:500}
+.gate ul{margin:0;padding-left:18px;color:var(--muted)}
+.gate .acts2{display:flex;gap:8px;flex-wrap:wrap}
+.gate form{display:grid;gap:10px}
+.utab{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line)}
+.utab th,.utab td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--soft);vertical-align:top;font-size:13px}
+.utab th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pill{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 7px;margin:1px 2px 1px 0;white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.chk{display:grid;gap:6px}
+.chk label{display:flex;gap:8px;align-items:center}
 </style>
 </head>
 <body>
@@ -434,12 +466,13 @@ body.nomarcas [data-newmarca], body.nomarcas [data-editmarca], body.nomarcas [da
       <span class="sep-v" aria-hidden="true"></span>
       <span class="onair">AL AIRE</span>
       <div>
-        <h1>Panel de Publicaciones</h1>
-        <div class="muted" style="font-size:13px">Registro y control de publicaciones por marca y red social</div>
+        <h1 id="ttl">Panel de Publicaciones</h1>
+        <div class="muted" style="font-size:13px" id="sub">Registro y control de publicaciones por marca y red social</div>
       </div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <div class="eobox" id="eoBox" hidden></div>
+      <div class="ubox" id="uBox" hidden></div>
       <span class="clock" id="clock">--:--</span>
       <button class="btn ghost sm" id="reload" type="button">Actualizar</button>
       <button class="btn primary" id="newPost" type="button">+ Nueva publicación</button>
@@ -456,6 +489,7 @@ body.nomarcas [data-newmarca], body.nomarcas [data-editmarca], body.nomarcas [da
     <button class="tab" role="tab" data-tab="calendario" aria-selected="false">Calendario</button>
     <button class="tab" role="tab" data-tab="tablero" aria-selected="false">Tablero</button>
     <button class="tab" role="tab" data-tab="marcas" aria-selected="false">Marcas</button>
+    <button class="tab" role="tab" data-tab="usuarios" aria-selected="false" id="tabUsr" hidden>Usuarios</button>
     </span>
     <span class="grow"></span>
     <span id="tabtools" style="display:contents">
@@ -507,7 +541,7 @@ const TYPES = ["Post","Video","Reel / Short","Historia","En vivo","Carrusel","Cl
 const PALETTE = ["#1F46C4","#C8321F","#16794A","#A86200","#6B5BB8","#0E7C86","#B0337A","#4A5568"];
 const PALETTE_N = {"#1F46C4":"Azul","#C8321F":"Rojo","#16794A":"Verde","#A86200":"Ámbar","#6B5BB8":"Violeta","#0E7C86":"Turquesa","#B0337A":"Magenta","#4A5568":"Grafito"};
 const NET_AB = {facebook:"FB",instagram:"IG",youtube:"YT",tiktok:"TT",x:"X",threads:"TH",linkedin:"IN",whatsapp:"WA"};
-const VERSION = "v17";
+const VERSION = "v18";
 const VERSION_FECHA = "11 oct 2026";
 const PERIODOS = [
   {k:"desdehoy",n:"Desde hoy"},{k:"hoy",n:"Hoy"},{k:"semana",n:"Esta semana"},{k:"mes",n:"Este mes"},
@@ -539,7 +573,8 @@ const IC = {
 const F_DEF = () => ({q:"", periodo:"desdehoy", desde:"", hasta:"", marca:"all", red:"all", estado:"all", formato:"all", resp:"all"});
 const S = {
   marcas:[], pubs:[], tab:"listado", loaded:false, month:null,
-  ctx:null,      // {eo, nombre, logo, eos, rol, asistencia, permisos} · eo = null → elegir empresa
+  ctx:null,      // {estado, eo, nombre, logo, codigo, eos, usuario, titular, permisos, marcasPermitidas, limiteMarcas}
+  usuarios:null, // colaboradores (pestaña Usuarios, solo titular)
   f:F_DEF(),
   sort:{key:"fecha", dir:1}, cols:[]
 };
@@ -601,14 +636,27 @@ tick(); setInterval(tick, 30000);
 /* ---------- comunicación con la página Wix ---------- */
 const pending = new Map();
 let seq = 0;
-function send(msg){ window.parent.postMessage(msg, "*"); }
-function request(msg){
+// Sesión única: cada dispositivo tiene su id; el BACKEND admite una sesión activa por usuario
+const SES_KEY = "redesPanel.sesion";
+function getSes(){
+  let v = ""; try { v = localStorage.getItem(SES_KEY) || ""; } catch {}
+  if (!v){ v = (crypto?.randomUUID?.() || ("S" + Date.now().toString(36) + Math.random().toString(36).slice(2,10))).toUpperCase(); try { localStorage.setItem(SES_KEY, v); } catch {} }
+  return v;
+}
+const SES = getSes();
+function send(msg){ window.parent.postMessage({...msg, ses:SES}, "*"); }
+function request(msg, sinEO){
   const reqId = "r" + (++seq) + "-" + Date.now();
-  const tipo = msg.col === "marcas" ? "marcas" : "publicaciones";
-  if (!S.ctx || !S.ctx.eo) return Promise.reject({code:"CONTEXTO", message:"Elige una empresa."});
-  if (S.ctx.asistencia) return Promise.reject({code:"SOLO_LECTURA", message:"La cuenta de asistencia es de solo lectura."});
-  if (!puede(tipo)) return Promise.reject({code:"SIN_PERMISO", message: tipo==="marcas" ? "Solo un administrador de la empresa puede gestionar marcas." : "Tu rol no permite registrar publicaciones."});
-  msg = {...msg, eo:S.ctx.eo};
+  if (!sinEO){
+    if (!S.ctx || !S.ctx.eo) return Promise.reject({code:"CONTEXTO", message:"Elige una empresa."});
+    const t = msg.type || "";
+    const negar = m => Promise.reject({code:"SIN_PERMISO", message:m});
+    if (t.startsWith("usr")){ if (!S.ctx.titular) return negar("Solo el titular gestiona colaboradores."); }
+    else if (msg.col === "marcas"){ if (!puede("marcas")) return negar("No tienes permiso para gestionar marcas."); }
+    else if (t === "remove" || t === "removeMany"){ if (!puede("eliminar")) return negar("No tienes permiso para eliminar publicaciones."); }
+    else if (!puede("editar") && !puede("estado")) return negar("No tienes permiso para modificar publicaciones.");
+    msg = {...msg, eo:S.ctx.eo};
+  }
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => { pending.delete(reqId); reject({message:"Sin respuesta de la página"}); }, 30000);
     pending.set(reqId, {resolve, reject, timer});
@@ -620,7 +668,7 @@ window.addEventListener("message", e => {
   if (m.type === "context"){
     aplicarContexto(m);
   } else if (m.type === "sinacceso"){
-    S.ctx = null; reiniciarEO(); S.loaded = true; S.sinAcceso = true;
+    S.ctx = null; reiniciarEO(); S.loaded = true; S.sinAcceso = true; $("#tabUsr").hidden = true;
     setBanner(m.message || "Tu cuenta no tiene acceso a SCaD Redes."); pintarEO(); render();
   } else if (m.type === "data"){
     if (!S.ctx || m.eo !== S.ctx.eo) return;   // datos de otra empresa: se descartan
@@ -635,25 +683,31 @@ window.addEventListener("message", e => {
     m.ok ? p.resolve(m.item) : p.reject(m.error || {});
   }
 });
-/* ---------- contexto multiempresa ---------- */
-const puede = tipo => !!(S.ctx && S.ctx.eo && !S.ctx.asistencia && S.ctx.permisos && S.ctx.permisos[tipo]);
+/* ---------- contexto multiempresa y comercial ---------- */
+const PERM_TXT = {editar:"Registrar y editar publicaciones", estado:"Cambiar estado (publicado, no publicado…)", eliminar:"Eliminar publicaciones", marcas:"Gestionar marcas", exportar:"Exportar reportes (PDF e impresión)"};
+const puede = k => !!(S.ctx && S.ctx.eo && S.ctx.permisos && S.ctx.permisos[k]);
 const safeLogo = u => safeImg(u) || (/^https:\/\//i.test(u||"") ? u : "");
 function aplicarContexto(m){
-  const eo = m.activa ? m.activa._id : null;
-  const cambio = !S.ctx || S.ctx.eo !== eo;
-  S.ctx = { eo, nombre: m.activa?.nombre || "", logo: m.activa?.logo || "", eos: m.eos || [],
-    rol: m.rol || "", asistencia: !!m.asistencia, permisos: m.permisos || {} };
+  const ok = m.estado === "ok" && m.activa;
+  const eo = ok ? m.activa._id : null;
+  const cambio = !S.ctx || S.ctx.eo !== eo || S.ctx.estado !== m.estado;
+  S.ctx = { estado: m.estado || "", eo, nombre: m.activa?.nombre || "", logo: m.activa?.logo || "", codigo: m.activa?.codigo || "",
+    eos: m.eos || [], usuario: m.usuario || null, email: m.email || "", titular: !!m.titular, permisos: m.permisos || {},
+    marcasPermitidas: m.marcasPermitidas || null, limiteMarcas: m.limiteMarcas || 3 };
   S.sinAcceso = false;
   if (cambio) reiniciarEO();
-  if (!eo) S.loaded = true;   // pantalla para elegir empresa
-  document.body.classList.toggle("ro", !puede("publicaciones"));
-  document.body.classList.toggle("nomarcas", !puede("marcas"));
-  setBanner(m.aviso || (S.ctx.asistencia ? "Asistencia SYS: vista de solo lectura. Para crear contenido se requiere alta como usuario de esta empresa." : ""));
+  if (!eo) S.loaded = true;   // pantalla de acceso (registro, compra, elegir…)
+  const b = document.body.classList;
+  ["editar","eliminar","marcas","exportar"].forEach(k => b.toggle("no-" + k, !puede(k)));
+  b.toggle("no-estado", !(puede("estado") || puede("editar")));
+  b.toggle("marcas-limitadas", !!S.ctx.marcasPermitidas);
+  $("#tabUsr").hidden = !(eo && S.ctx.titular);
+  setBanner(m.aviso || "");
   pintarEO(); render();
 }
 // Sustituye el contexto: nada de la empresa anterior se reutiliza
 function reiniciarEO(){
-  S.marcas = []; S.pubs = []; S.loaded = false; S.f = F_DEF(); S.tab = "listado";
+  S.marcas = []; S.pubs = []; S.usuarios = null; S.loaded = false; S.f = F_DEF(); S.tab = "listado";
   const d = new Date(); S.month = new Date(d.getFullYear(), d.getMonth(), 1);
   closeModal(); $("#print").innerHTML = "";
   document.querySelectorAll(".menu .pop").forEach(pp => pp.hidden = true);
@@ -661,28 +715,152 @@ function reiniciarEO(){
   pending.clear();
 }
 function pintarEO(){
-  const box = $("#eoBox"), c = S.ctx;
-  if (!c || !c.eo){ box.hidden = true; box.innerHTML = ""; return; }
-  const lg = safeLogo(c.logo);
-  const rol = c.asistencia ? `<span class="rol asis" title="Asistencia SYS">SYS</span>` : (c.rol ? `<span class="rol">${esc(c.rol)}</span>` : "");
-  const nombre = c.eos.length > 1 && !c.asistencia
-    ? `<select id="eoSel" aria-label="Empresa">${c.eos.map(e => `<option value="${esc(e._id)}" ${e._id===c.eo?"selected":""}>${esc(e.nombre)}</option>`).join("")}</select>`
-    : `<span class="eon" title="${esc(c.nombre)}">${esc(c.nombre)}</span>`;
-  box.innerHTML = `${lg?`<img src="${esc(lg)}" alt="">`:""}${nombre}${rol}`;
-  box.hidden = false;
+  const box = $("#eoBox"), ub = $("#uBox"), c = S.ctx;
+  // Identidad: la EO es el título del panel
+  $("#ttl").textContent = c && c.nombre ? c.nombre : "Panel de Publicaciones";
+  $("#sub").textContent = c && c.nombre ? "Panel de publicaciones · SCaD Redes" : "Registro y control de publicaciones por marca y red social";
+  if (!c || !c.nombre){ box.hidden = true; box.innerHTML = ""; }
+  else {
+    const lg = safeLogo(c.logo);
+    const nombre = c.eos.length > 1 && c.eo
+      ? `<select id="eoSel" aria-label="Empresa">${c.eos.map(e => `<option value="${esc(e._id)}" ${e._id===c.eo?"selected":""}>${esc(e.nombre)}</option>`).join("")}</select>`
+      : `<span class="eon" title="${esc(c.nombre)}">${esc(c.nombre)}</span>`;
+    box.innerHTML = `${lg?`<img src="${esc(lg)}" alt="">`:""}${nombre}`;
+    box.hidden = false;
+  }
+  if (c && (c.usuario || c.email)){
+    const rol = c.usuario?.rol === "TITULAR" ? "Titular" : (c.usuario ? "Colaborador" : "");
+    ub.innerHTML = `<span class="un" title="${esc(c.email)}">${esc(c.usuario?.nombre || c.email)}</span>${rol?`<span class="ur">${rol}</span>`:""}<button class="btn ghost sm" id="logoutBtn" type="button">Cerrar sesión</button>`;
+    ub.hidden = false;
+  } else { ub.hidden = true; ub.innerHTML = ""; }
 }
 function cambiarEO(id){
   if (!id || !S.ctx || id === S.ctx.eo) return;
+  const e = S.ctx.eos.find(x => x._id === id) || {};
   reiniciarEO();
-  S.ctx = {...S.ctx, eo:id, nombre:(S.ctx.eos.find(e=>e._id===id)||{}).nombre||"", logo:(S.ctx.eos.find(e=>e._id===id)||{}).logo||""};
+  S.ctx = {...S.ctx, eo:null, estado:"", nombre:e.nombre||"", logo:e.logo||""};
   pintarEO(); render();
   send({type:"switchEO", eoId:id});
 }
-function viewPicker(){
-  if (S.sinAcceso) return `<div class="empty"><strong>Sin acceso</strong>${esc($("#banner").textContent||"")}</div>`;
-  const eos = S.ctx?.eos || [];
-  return `<div class="picker"><h2>Elige una empresa</h2><p class="muted" style="margin:0">Tu cuenta tiene acceso a SCaD Redes en varias empresas.</p>
-    ${eos.map(e => { const lg = safeLogo(e.logo); return `<button class="pick" data-pickeo="${esc(e._id)}" type="button">${lg?`<img src="${esc(lg)}" alt="">`:""}<span class="grow">${esc(e.nombre)}</span><span class="muted mono">${esc(e.rol||"")}</span></button>`; }).join("")}</div>`;
+// Pantallas de acceso: registro, compra, suspensión, sesión activa, elegir empresa
+function viewGate(){
+  const c = S.ctx || {};
+  if (S.sinAcceso) return `<div class="gate"><h2>Sin acceso</h2><p class="muted">${esc($("#banner").textContent||"")}</p></div>`;
+  const correo = `<b>${esc(c.email || "")}</b>`;
+  switch (c.estado){
+    case "registro":
+      return `<div class="gate"><h2>Registra tu empresa</h2>
+        <p class="muted">Es el último paso. Tu empresa será la identidad del panel y tú quedarás como titular.</p>
+        <form id="rf">
+          <div class="f"><label class="label" for="rf-n">Nombre de la empresa</label><input id="rf-n" name="nombre" required maxlength="80" placeholder="Ej. Canal Foro CX"></div>
+          <div class="f"><label class="label" for="rf-c">Nombre corto (opcional)</label><input id="rf-c" name="corto" maxlength="10" placeholder="Ej. CFCX"><span class="muted" style="font-size:11.5px">Letras y números; se usa como código de tu empresa.</span></div>
+          <div class="f"><label class="label" for="rf-p">Tu nombre</label><input id="rf-p" name="persona" required maxlength="80"></div>
+          <div class="f"><label class="label" for="rf-t">Teléfono (opcional)</label><input id="rf-t" name="telefono" inputmode="tel" maxlength="15"></div>
+          <div class="acts2"><button class="btn primary" type="submit">Crear mi empresa</button></div>
+        </form></div>`;
+    case "comprar_titular":
+      return `<div class="gate"><h2>SCaD Redes</h2>
+        <p>Registra, programa y controla las publicaciones de tus marcas en redes sociales.</p>
+        <div class="price">$49 <small>MXN / mes</small></div>
+        <ul><li>1 usuario (titular)</li><li>Hasta 3 marcas</li><li>Colaboradores adicionales con su propia suscripción</li></ul>
+        <div class="acts2"><button class="btn primary" data-comprar="titular" type="button">Adquirir PLAN REDES</button></div>
+        <p class="muted" style="font-size:12.5px">¿Te invitaron como colaborador? Pide al titular que te registre con el correo ${correo}.</p></div>`;
+    case "comprar_colaborador":
+      return `<div class="gate"><h2>Te invitaron a ${esc(c.nombre || "una empresa")}</h2>
+        <p>Para entrar como colaborador necesitas tu suscripción.</p>
+        <div class="price">$39 <small>MXN / mes</small></div>
+        <div class="acts2"><button class="btn primary" data-comprar="colaborador" type="button">Adquirir COLABORADOR REDES</button></div></div>`;
+    case "sin_invitacion":
+      return `<div class="gate"><h2>Falta la invitación</h2>
+        <p>Tienes la suscripción COLABORADOR REDES, pero ningún titular ha invitado a ${correo}.</p>
+        <p class="muted">Pide al titular de la empresa que te invite con ese correo desde su pestaña Usuarios.</p>
+        <div class="acts2"><button class="btn" data-retry="" type="button">Ya me invitaron</button></div></div>`;
+    case "suspendida": {
+      const tit = (c.eos.find(e => e.nombre === c.nombre) || {}).rol === "TITULAR";
+      return `<div class="gate"><h2>Suscripción no vigente</h2>
+        <p>${esc(c.nombre || "La empresa")} no tiene una suscripción activa. Tus datos se conservan.</p>
+        ${tit ? `<div class="acts2"><button class="btn primary" data-comprar="titular" type="button">Renovar PLAN REDES</button></div>`
+              : `<p class="muted">Pide al titular de la empresa que renueve su suscripción.</p>`}</div>`;
+    }
+    case "sesion_activa":
+      return `<div class="gate"><h2>Sesión activa en otro dispositivo</h2>
+        <p>Tu cuenta ya está abierta en otro dispositivo. Ciérrala allá con “Cerrar sesión”, o espera: se libera tras 30 minutos sin actividad.</p>
+        <div class="acts2"><button class="btn primary" data-retry="" type="button">Reintentar</button></div></div>`;
+    default: {
+      const eos = c.eos || [];
+      return `<div class="picker"><h2>Elige una empresa</h2><p class="muted" style="margin:0">Tu cuenta tiene acceso a SCaD Redes en varias empresas.</p>
+        ${eos.map(e => { const lg = safeLogo(e.logo); return `<button class="pick" data-pickeo="${esc(e._id)}" type="button">${lg?`<img src="${esc(lg)}" alt="">`:""}<span class="grow">${esc(e.nombre)}</span><span class="muted mono">${e.rol==="TITULAR"?"Titular":"Colaborador"}</span></button>`; }).join("")}</div>`;
+    }
+  }
+}
+/* ---------- usuarios (solo titular) ---------- */
+async function cargarUsuarios(){
+  if (S.usrCargando) return; S.usrCargando = true;
+  try { S.usuarios = await request({type:"usrList"}); }
+  catch(err){ S.usuarios = {error: errMsg(err, "cargar los colaboradores")}; }
+  S.usrCargando = false;
+  if (S.tab === "usuarios") render();
+}
+function viewUsuarios(){
+  if (!S.usuarios){ cargarUsuarios(); return `<div class="empty"><strong>Cargando colaboradores…</strong></div>`; }
+  if (S.usuarios.error) return `<div class="empty"><strong>No se pudo cargar</strong>${esc(S.usuarios.error)}</div>`;
+  const U = S.usuarios, lista = U.usuarios || [];
+  const marcaN = id => marcaOf(id)?.nombre || "—";
+  let h = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <p class="muted" style="margin:0;max-width:72ch">Cada colaborador entra con su propia cuenta y su suscripción COLABORADOR REDES (${esc(U.precioColaborador||"")}). Invítalo con su correo; al abrir <b>${esc(U.urlInvitacion||"")}</b> con esa cuenta podrá adquirirla.</p>
+    <span style="display:flex;gap:6px"><button class="btn" id="copyInv" type="button">Copiar enlace</button><button class="btn primary" data-newusr="" type="button">+ Invitar colaborador</button></span></div>`;
+  if (!lista.length) return h + `<div class="empty"><strong>Aún no tienes colaboradores</strong>Invita a alguien para compartir el trabajo.</div>`;
+  h += `<div class="tw"><table class="utab"><thead><tr><th>Colaborador</th><th>Estado</th><th>Permisos</th><th>Marcas</th><th></th></tr></thead><tbody>`;
+  lista.forEach(u => {
+    const st = !u.vinculado ? `<span class="pill warn">Invitación pendiente</span>` : (u.plan ? `<span class="pill ok">Activo</span>` : `<span class="pill warn">Sin suscripción</span>`);
+    const per = Object.keys(PERM_TXT).filter(k => u.permisos?.[k]).map(k => `<span class="pill">${esc(PERM_TXT[k].split(" (")[0])}</span>`).join("") || `<span class="muted">Solo consulta</span>`;
+    const mar = u.marcas?.length ? u.marcas.map(id => `<span class="pill">${esc(marcaN(id))}</span>`).join("") : `<span class="muted">Todas</span>`;
+    h += `<tr><td><b>${esc(u.nombre)}</b><div class="muted">${esc(u.email)}</div></td><td>${st}</td><td>${per}</td><td>${mar}</td>
+      <td style="white-space:nowrap"><button class="ib" data-editusr="${esc(u.usrId)}" type="button" title="Editar" aria-label="Editar">${IC.edit}</button><button class="ib del" data-delusr="${esc(u.usrId)}" type="button" title="Quitar" aria-label="Quitar">${IC.del}</button></td></tr>`;
+  });
+  return h + `</tbody></table></div>`;
+}
+function usrForm(u){
+  const nuevo = !u.usrId, per = u.permisos || {editar:true, estado:true}, sel = new Set(u.marcas || []);
+  const todas = !sel.size;
+  openDrawer(`<header><h2>${nuevo?"Invitar colaborador":"Editar colaborador"}</h2><button class="btn ghost" data-close type="button" aria-label="Cerrar">✕</button></header>
+    <form id="uf" style="display:flex;flex-direction:column;gap:12px" data-usr="${esc(u.usrId||"")}">
+      <div class="f"><label class="label" for="uf-e">Correo de su cuenta</label><input id="uf-e" name="email" type="email" required value="${esc(u.email||"")}" ${nuevo?"":"readonly"}></div>
+      <div class="f"><label class="label" for="uf-n">Nombre</label><input id="uf-n" name="nombre" required maxlength="80" value="${esc(u.nombre||"")}"></div>
+      <div class="f"><span class="label">Permisos</span><div class="chk">
+        <label><input type="checkbox" checked disabled> Ver publicaciones, calendario y tablero</label>
+        ${Object.keys(PERM_TXT).map(k => `<label><input type="checkbox" name="perm" value="${k}" ${per[k]?"checked":""}> ${esc(PERM_TXT[k])}</label>`).join("")}
+      </div></div>
+      <div class="f"><span class="label">Marcas</span><div class="chk">
+        <label><input type="radio" name="alc" value="todas" ${todas?"checked":""}> Todas las marcas</label>
+        <label><input type="radio" name="alc" value="algunas" ${todas?"":"checked"}> Solo estas:</label>
+        <div class="chk" style="padding-left:24px">${S.marcas.map(m => `<label><input type="checkbox" name="marca" value="${esc(m._id)}" ${sel.has(m._id)?"checked":""}> ${esc(m.nombre)}</label>`).join("") || `<span class="muted">Aún no hay marcas.</span>`}</div>
+      </div></div>
+      <div class="foot"><span class="muted" style="font-size:11.5px">${nuevo?"Entrará con este correo y adquirirá su suscripción COLABORADOR REDES.":"Los cambios aplican en su siguiente acción."}</span><button class="btn primary" type="submit">${nuevo?"Invitar":"Guardar"}</button></div>
+    </form>`);
+}
+async function enviarUsrForm(form){
+  const fd = new FormData(form), usrId = form.dataset.usr;
+  const permisos = {}; Object.keys(PERM_TXT).forEach(k => permisos[k] = fd.getAll("perm").includes(k));
+  const marcas = fd.get("alc") === "algunas" ? fd.getAll("marca") : [];
+  if (fd.get("alc") === "algunas" && !marcas.length){ toast("Elige al menos una marca"); return; }
+  const datos = { email: fd.get("email"), nombre: (fd.get("nombre")||"").trim(), permisos, marcas };
+  busy(form, true);
+  try {
+    await request(usrId ? {type:"usrUpdate", usrId, datos} : {type:"usrInvite", datos});
+    closeModal(); toast(usrId ? "Colaborador actualizado" : "Invitación registrada");
+    S.usuarios = null; render();
+  } catch(err){ busy(form, false); toast(errMsg(err, "guardar")); }
+}
+function confirmQuitarUsr(u){
+  openDrawer(`<header><h2>Quitar colaborador</h2><button class="btn ghost" data-close type="button" aria-label="Cerrar">✕</button></header>
+    <div class="confirm"><b>¿Quitar a ${esc(u.nombre)}?</b><span class="muted">Perderá el acceso a esta empresa. Su suscripción COLABORADOR REDES la cancela desde su cuenta.</span>
+    <div style="display:flex;gap:8px"><button class="btn danger" id="usr-del-ok" type="button">Quitar</button><button class="btn" data-close type="button">Cancelar</button></div></div>`);
+  $("#usr-del-ok").addEventListener("click", async e => {
+    e.target.disabled = true;
+    try { await request({type:"usrRemove", usrId:u.usrId}); closeModal(); toast("Colaborador quitado"); S.usuarios = null; render(); }
+    catch(err){ e.target.disabled = false; toast(errMsg(err, "quitar")); }
+  });
 }
 const eoNombre = () => S.ctx?.nombre || "";
 
@@ -694,7 +872,7 @@ function normPub(p){
   return o;
 }
 function errMsg(err, accion){
-  if (err && ["SIN_PERMISO","SOLO_LECTURA","CONTEXTO","NO_ENCONTRADO","EN_USO","DATOS","SIN_ACCESO"].includes(err.code) && err.message) return err.message;
+  if (err && ["SIN_PERMISO","SOLO_LECTURA","CONTEXTO","NO_ENCONTRADO","EN_USO","DATOS","SIN_ACCESO","SESION","SUSPENDIDA","LIMITE"].includes(err.code) && err.message) return err.message;
   const t = String((err && (err.message || err.code)) || "");
   if (/permission|WDE0027|not authorized|permiso/i.test(t))
     return accion==="eliminar" ? "Tu rol no permite eliminar. Cambia el estado o pide apoyo al administrador de la empresa." : "No tienes permiso para esta acción.";
@@ -912,7 +1090,7 @@ function viewMarcas(){
   if (!S.loaded) return `<div class="empty"><strong>Cargando marcas…</strong></div>`;
   let h = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
     <p class="muted" style="margin:0;max-width:70ch">Cada marca activa sus redes desde su ficha. Al registrar una publicación solo aparecen las redes activas de la marca elegida.</p>
-    <button class="btn primary" data-newmarca="" type="button">+ Nueva marca</button></div>`;
+    <span style="display:flex;gap:8px;align-items:center">${S.ctx && !S.ctx.marcasPermitidas ? `<span class="muted mono" title="Marcas del plan">${S.marcas.length} / ${S.ctx.limiteMarcas}</span>` : ""}<button class="btn primary" data-newmarca="" type="button">+ Nueva marca</button></span></div>`;
   if (!S.marcas.length) return h + `<div class="empty"><strong>Aún no hay marcas</strong>Crea la primera y activa sus redes.</div>`;
   h += `<div class="brands">`;
   S.marcas.slice().sort((a,b)=>(a.orden??0)-(b.orden??0)).forEach(m => {
@@ -960,10 +1138,16 @@ function render(){
     if (S.loaded){
       ["#filters","#stats","#fbar","#sbar"].forEach(q => { const el = $(q); if (el) el.innerHTML = ""; });
       document.querySelector("nav.tabs").hidden = true; $("#newPost").hidden = true;
-      $("#view").innerHTML = viewPicker(); return;
+      $("#view").innerHTML = viewGate(); return;
     }
   }
   document.querySelector("nav.tabs").hidden = false; $("#newPost").hidden = false;
+  if (S.tab === "usuarios" && !(S.ctx && S.ctx.titular)) S.tab = "listado";
+  if (S.tab === "usuarios"){
+    ["#filters","#stats","#fbar","#sbar"].forEach(q => { const el = $(q); if (el) el.innerHTML = ""; });
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab===S.tab));
+    $("#view").innerHTML = viewUsuarios(); return;
+  }
   renderFilters(); renderStats(); renderFbar(); renderSbar(); renderTools();
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab===S.tab));
   $("#view").innerHTML = ({listado:viewListado,calendario:viewCalendario,tablero:viewTablero,marcas:viewMarcas})[S.tab]();
@@ -1329,7 +1513,7 @@ async function copyText(p){
 }
 
 function newPost(fecha){
-  if (!puede("publicaciones")){ toast(S.ctx?.asistencia ? "La asistencia SYS es de solo lectura" : "Tu rol no permite registrar publicaciones"); return; }
+  if (!puede("editar")){ toast("No tienes permiso para registrar publicaciones"); return; }
   if (!S.marcas.length){ toast("Primero crea una marca"); S.tab="marcas"; render(); return; }
   const activas = S.marcas.filter(m => m.activo!==false);
   const canal = S.f.marca!=="all" ? S.f.marca : (activas[0]||S.marcas[0])._id;
@@ -1510,6 +1694,13 @@ document.addEventListener("click", async e => {
   if (t.classList.contains("tab")){ S.tab=d.tab; render(); return; }
   if (d.close!==undefined){ closeModal(); return; }
   if (d.pickeo){ cambiarEO(d.pickeo); return; }
+  if (d.comprar){ t.disabled = true; send({type:"comprar", plan:d.comprar}); toast("Abriendo la compra…"); setTimeout(() => t.disabled = false, 4000); return; }
+  if (d.retry!==undefined){ S.loaded = false; render(); send({type:"retry"}); return; }
+  if (t.id==="logoutBtn"){ t.disabled = true; send({type:"logout"}); return; }
+  if (d.newusr!==undefined){ usrForm({}); return; }
+  if (d.editusr){ const u=(S.usuarios?.usuarios||[]).find(x=>x.usrId===d.editusr); u && usrForm(u); return; }
+  if (d.delusr){ const u=(S.usuarios?.usuarios||[]).find(x=>x.usrId===d.delusr); u && confirmQuitarUsr(u); return; }
+  if (t.id==="copyInv"){ const url = S.usuarios?.urlInvitacion || ""; try { await navigator.clipboard.writeText(url); toast("Enlace copiado"); } catch { toast(url); } return; }
   if (d.fst!==undefined){ S.f.estado = d.fst; render(); return; }
   if (d.fmarca!==undefined){ S.f.marca=d.fmarca; render(); return; }
   if (d.fred!==undefined){ S.f.red=d.fred; render(); return; }
@@ -1547,7 +1738,7 @@ document.addEventListener("click", async e => {
     return;
   }
   if (d.mo!==undefined){ const n=Number(d.mo); if(n===0){const x=new Date();S.month=new Date(x.getFullYear(),x.getMonth(),1);} else S.month=new Date(S.month.getFullYear(),S.month.getMonth()+n,1); render(); return; }
-  if (d.newmarca!==undefined){ marcaForm({}); return; }
+  if (d.newmarca!==undefined){ if (S.ctx && S.marcas.length >= S.ctx.limiteMarcas){ toast(`Tu plan permite hasta ${S.ctx.limiteMarcas} marcas`); return; } marcaForm({}); return; }
   if (d.editmarca){ const m=marcaOf(d.editmarca); m && marcaForm(m); return; }
   if (d.delmarca){ const m=marcaOf(d.delmarca); m && confirmDeleteMarca(m); return; }
   if (t.id==="newPost"){ newPost(""); return; }
@@ -1581,6 +1772,22 @@ document.addEventListener("input", e => {
   }, 220);
 });
 document.addEventListener("keydown", e => { if (e.key==="Escape" && $("#modal").innerHTML) closeModal(); });
+document.addEventListener("submit", async e => {
+  const f = e.target;
+  if (f.id === "uf"){ e.preventDefault(); enviarUsrForm(f); return; }
+  if (f.id === "rf"){
+    e.preventDefault();
+    const fd = new FormData(f);
+    busy(f, true);
+    try { await request({type:"registrar", datos:{nombre:fd.get("nombre"), corto:fd.get("corto"), persona:fd.get("persona"), telefono:fd.get("telefono")}}, true); toast("Empresa registrada"); }
+    catch(err){ busy(f, false); toast(errMsg(err, "registrar la empresa")); }
+  }
+});
+// Actividad: mantiene viva la sesión única (máx. un aviso cada 5 min)
+let ultimoPing = Date.now();
+["click","keydown"].forEach(ev => document.addEventListener(ev, () => {
+  if (S.ctx && S.ctx.eo && Date.now() - ultimoPing > 5*60000){ ultimoPing = Date.now(); send({type:"ping"}); }
+}, true));
 
 /* ---------- arranque ---------- */
 $("#ver").textContent = `${VERSION} · ${VERSION_FECHA}`;
