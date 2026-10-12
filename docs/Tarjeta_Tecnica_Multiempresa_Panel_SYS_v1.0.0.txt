@@ -1,0 +1,50 @@
+SCaD · TARJETA TÉCNICA
+MODELO MULTIEMPRESA GESTIONADO DESDE PANEL SYS
+Versión 1.0.0 · 11 de octubre de 2026
+Base: acuerdos del proyecto. Esta tarjeta describe el modelo; no constituye una auditoría del código vigente.
+
+1. PROPÓSITO
+Administrar desde Panel SYS una familia de aplicaciones (APP) y sus empresas operadoras (EO). Cada EO conserva su identidad, usuarios, configuración y operación dentro de la APP correspondiente. Una misma APP atiende a varias EO sin duplicar la aplicación.
+
+2. ESTRUCTURA Y RESPONSABILIDADES
+Panel SYS: administración transversal; selección de EO; apertura del panel de la APP correspondiente; definición de opciones de acceso, roles adicionales y capacidades configurables.
+Panel EO: administración local de identidad, usuarios, acceso y módulos operativos disponibles en su APP.
+APP: entorno de uso del usuario, con datos y módulos sujetos a su contexto activo y permisos.
+Jerarquía de operación: Panel SYS → APP / EO seleccionada → Panel EO → usuarios y operación de esa EO.
+
+3. CONTEXTO ÚNICO DE ACCESO
+APP + EO + email + activo definen la pertenencia del usuario.
+El correo identifica al usuario dentro de esa combinación; no es una identidad global suficiente para autorizar acceso a cualquier EO.
+memberId se guarda en el primer acceso cuando se resuelve el pre-registro y se utiliza en procesos transversales posteriores.
+Un mismo correo puede pertenecer a varias EO activas de una misma APP. Con una sola EO, el ingreso es directo; con varias, autenticación presenta un modal para elegir la EO.
+
+4. ENTIDADES TRANSVERSALES
+SCaD_EO: registro e identidad de empresas operadoras.
+SCaD_USR: pertenencia de usuarios por APP y EO, correo, actividad, roles y vinculación con memberId.
+Los módulos deben consumir estas entidades transversales y evitar duplicar registros de identidad o pertenencia en colecciones propias.
+
+5. POLÍTICA DE ACCESO EN DOS NIVELES
+SYS habilita las opciones disponibles para cada APP; la EO configura su uso dentro de ese marco.
+Registro directo: pre-alta activa en SCaD_USR con accesoDirecto=true. En el primer acceso se coteja APP + EO + email, se guarda memberId y se permite entrar sin código.
+Código de acceso: de un solo uso, no personalizado; se aplica cuando no existe el registro de pertenencia que resuelve el acceso.
+Plan de pago: habilita acceso a la APP conforme a la política vigente.
+Acceso libre: requiere habilitación de SYS para la APP y activación local de la EO.
+La autenticación resuelve primero la pertenencia por correo y contexto, antes de exigir un código.
+
+6. ROLES Y ASISTENCIA SYS
+Roles base: USU y ADM. SYS define roles adicionales; la EO puede personalizar sus etiquetas y conservarlas por EO.
+La APP muestra únicamente módulos autorizados para el contexto y permisos del usuario.
+“Entrar a EO como admSYS” abre la APP en una ventana nueva con el contexto resuelto. La cuenta de asistencia es silenciosa: no aparece en listados de la EO ni ocupa cupo. Para crear contenido requiere alta como usuario de la EO.
+
+7. SEPARACIÓN DE DATOS
+Toda consulta, modificación y exportación debe validar en backend el contexto autorizado de APP y EO, además del permiso aplicable. La selección visual de EO no sustituye esa validación.
+La sesión o token validado determina la identidad; un memberId enviado libremente por el cliente no debe autorizar operaciones.
+El cambio de EO debe sustituir el contexto activo y evitar reutilizar datos, cachés o pendientes de otra EO.
+En módulos Local First, los registros locales y pendientes deben quedar asociados a su APP y EO para sincronizar en el contexto correcto.
+
+8. INCORPORACIÓN DE SCaD REDES
+Aplicar el mismo modelo: SYS habilita y configura la APP; cada EO administra sus publicadores y su operación; cada usuario ingresa al contexto APP + EO autorizado.
+El registro, control y consulta de publicaciones debe respetar ese contexto. La incorporación de Redes es una aplicación del modelo, no una afirmación de que su integración ya esté implementada.
+
+CRITERIO DE ACEPTACIÓN
+Panel SYS puede abrir la EO seleccionada; el usuario accede a la EO correcta; los permisos y políticas se aplican por contexto; consultas, exportaciones y sincronización no mezclan datos entre EO.
