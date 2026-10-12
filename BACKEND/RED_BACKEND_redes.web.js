@@ -4,7 +4,7 @@
    SITIO:     scad.mx
    ARCHIVO:   RED_BACKEND_redes.web.js
               En Wix se instala como:  backend/redes.web.js
-   VERSIÓN:   v2 · 2026-10-11
+   VERSIÓN:   v2.1 · 2026-10-11
    MODELO:    Multiempresa gestionado desde Panel SYS + modelo comercial
    DEPENDE:   SCaD_EO, SCaD_USR (transversales, esquema real de SYS)
               RedesCanales, RedesPublicaciones (campo eoId)
@@ -24,6 +24,9 @@
      · Sesión única por usuario: la nueva se rechaza mientras la otra tenga
        actividad en los últimos 30 minutos.
      · Límite de marcas por EO: 3 (SCaD_EO.limiteMarcas lo puede ajustar).
+   CAMBIOS v2.1: los paquetes de planes se cargan bajo demanda; si no están
+              instalados, el módulo carga igual (EO de cortesía funcionan y las
+              EO comerciales se ven suspendidas hasta instalarlos).
    CAMBIOS v2: esquema real de SCaD (enteOperador/codigoContexto, admSys como
               pertenencia normal, accesoDirecto en la EO, logoEo); planes;
               registro de empresa; colaboradores e invitaciones; permisos
@@ -32,8 +35,8 @@
 import { Permissions, webMethod } from 'wix-web-module';
 import wixData from 'wix-data';
 import { currentMember } from 'wix-members-backend';
-import { orders } from '@wix/pricing-plans';
-import { auth } from '@wix/essentials';
+// @wix/pricing-plans y @wix/essentials se cargan solo al consultar planes (ver listarOrdenes),
+// para que el módulo cargue aunque esos paquetes no estén instalados en el sitio.
 
 /* ---------- CONFIGURACIÓN ---------- */
 const CFG = {
@@ -66,7 +69,14 @@ const CAMPOS_FECHA = ['fechaProgramada', 'fechaPublicada'];
 const LIMITE = 1000;
 const MAX_LOTE = 100;
 const OPT = { suppressAuth: true };
-const listarOrdenes = auth.elevate(orders.managementListOrders);
+let ordenesElevadas = null;
+async function listarOrdenes(opciones) {
+  if (!ordenesElevadas) {
+    const [{ orders }, { auth }] = await Promise.all([import('@wix/pricing-plans'), import('@wix/essentials')]);
+    ordenesElevadas = auth.elevate(orders.managementListOrders);
+  }
+  return ordenesElevadas(opciones);
+}
 
 /* ==========================================================
    MÉTODOS WEB · todos responden { ok:true, data } o { ok:false, error }
