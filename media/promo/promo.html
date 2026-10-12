@@ -202,7 +202,7 @@ const DATES=[["Lun","12"],["Lun","19"],["Lun","26"],["Lun","2"]];
 $("dates").innerHTML=DATES.map((d,i)=>`<div class="abs date" id="dt${i}" style="left:${1000+i*180}px;top:520px"><small>${d[0]}</small><b>${d[1]}</b></div>`).join("");
 const STEPS=[["💡","Idea"],["✏️","Borrador"],["⏳","Revisión"],["📅","Programado"],["✅","Publicado"]];
 $("steps").innerHTML=STEPS.map((s,i)=>`<div class="stp" id="sp${i}" style="left:${230+i*330}px"><div class="o" id="so${i}">${s[0]}</div><div class="t">${s[1]}</div></div>`).join("");
-const USERS=[["JA","#062B62","Jorge Acuña","Titular · todos los permisos",[["Todas las marcas","br"]],[],"TITULAR","#062B62"],
+const USERS=[["LM","#062B62","Laura Méndez","Titular · todos los permisos",[["Todas las marcas","br"]],[],"TITULAR","#062B62"],
   ["MT","#FE6B02","Mariana Torres","Colaboradora",[["Canal Foro CX","br"]],["Registrar","Cambiar estado","Exportar"],"ACTIVO","#16794A"],
   ["RH","#1F46C4","Ricardo Hernández","Colaborador",[["TV Digital Internet","br"]],["Registrar","Cambiar estado"],"INVITADO","#A86200"]];
 $("users").innerHTML=USERS.map((u,i)=>`<div class="abs card usr" id="us${i}" style="left:900px;top:${190+i*230}px"><div class="av" style="background:${u[1]}">${u[0]}</div><div><h5>${u[2]}</h5><div class="r">${u[3]}</div><div>${u[4].map(t=>`<span class="tg ${t[1]}">${t[0]}</span>`).join("")}${u[5].map((t,k)=>`<span class="tg on" id="pm${i}_${k}">✓ ${t}</span>`).join("")}</div></div><span class="badge" style="color:${u[7]};border:2px solid ${u[7]}">${u[6]}</span></div>`).join("");
