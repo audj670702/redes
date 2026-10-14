@@ -6,7 +6,10 @@
               En Wix se instala como:  backend/redesCore.js
               (.js a propósito: solo lo usan otros archivos del backend,
                nunca el navegador)
-   VERSIÓN:   v1.1 · 2026-10-12
+   VERSIÓN:   v1.2 · 2026-10-13
+   CAMBIOS v1.2: rol nativo de Wix "SCaD Redes" (6cbf8d97-…) activado en
+              ROLES_NATIVOS: quien lo tenga entra al Panel sin comprar plan.
+              Uso actual: solo la cuenta institucional de Canal Foro CX.
    CAMBIOS v1.1: la EO pedida también se reconoce por codigoEO (EO007), que es
               lo que envía Panel SYS al entrar como admSYS (?scadEO=).
    USADO POR: backend/redes.web.js (Panel) y http-functions.js (APP)
@@ -49,7 +52,9 @@ const CFG = {
   },
   PLAN_TITULAR: '72971ae6-8235-4e95-b595-c924edf36f2b',     // PLAN REDES · $49
   PLAN_COLABORADOR: '099b36c6-c746-407c-9b15-2ba19661ddd4', // COLABORADOR REDES · $39
-  ROLES_NATIVOS: [],      // título o _id del rol nativo de cortesía (ej. ['REDES'])
+  // Rol nativo de Wix que da acceso sin compra de plan (título o _id).
+  // 6cbf8d97-… = "SCaD Redes" (solo cuenta institucional de Canal Foro CX)
+  ROLES_NATIVOS: ['6cbf8d97-3160-47e0-92c9-8689859fc4d2'],
   LIMITE_MARCAS: 3,
   SESION_MINUTOS: 30,
   CAMPO_EO: 'eoId',
